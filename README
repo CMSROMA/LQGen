@@ -1,0 +1,5 @@
+Adjust the path in the Makefile to be able to compile this in the POWHEGBOX-V2 framework.
+You should install Herwig7.2 following the instructions in the directory HerwigInstallation (InstallationScript.sh).
+In the directory HerwigInterface there are the remaining instructions to run Herwig7.2 using the events generated here.
+
+An example of the POWHEG input card is provided in LQ3000-13TeV.
