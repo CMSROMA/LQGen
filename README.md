@@ -1,0 +1,2 @@
+# LQGen
+Generate Leptoquark samples
