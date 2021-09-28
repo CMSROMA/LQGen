@@ -19,6 +19,7 @@ svn checkout --username anonymous --password anonymous svn://powhegbox.mib.infn.
 
 Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
 ```
+bash
 source setup.sh
 ```
 
@@ -75,9 +76,107 @@ p                py               pz               Energy           Mass
 ```
 
 
+## Compile Herwig package for showering of LHE events
 
 
+(Only the first time) Software needed for the installation. You can install it in local if you don't have root access (i.e. on lxplus at CERN).
+
+Mercurial:
+```
+pip3 install --user mercurial
+```
+
+gengetopt: Follow instructions at https://www.gnu.org/software/gengetopt/gengetopt.html. Then add the location of the gengetopt executable to your PATH:
+```
+PATH=$PATH:/home/...../bin
+```
 
 
+Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
+```
+bash
+source setup.sh
+```
+
+```
+cd HerwigInstallation
+```
+
+Install:
+```
+./InstallationScript.sh
+```
+(it takes about 30 minutes)
+
+Edit HerwigDefaults.rpo file:
+```
+emacs -nw share/Herwig/HerwigDefaults.rpo
+```
+Change the line starting with "/build/jenkins/workspace/lcg_release_pipeline" (line 5) with line of the local path
+"/..../HerwigInstallation/lib/Herwig/" (line 8), i.e. both line 5 and line 8 should have the same content.
 
 
+## Run Herwig showering in CMSSW
+
+(Instructions for tcsh)
+
+Start from a new terminal.
+
+Setup CMSSW environment:
+``` 
+source /cvmfs/cms.cern.ch/cmsset_default.csh
+```
+
+Create CMSSW area:
+```
+cd  HerwigInterface
+scram project -n CMSSW_10_6_28_LQGen CMSSW CMSSW_10_6_28
+cd CMSSW_10_6_28_LQGen/src
+cmsenv
+```
+
+(Do these following two steps after "cmsenv", otherwise the settings will be overwritten)
+
+Setup LHAPDF_DATA_PATH (should include "LUXlep-NNPDF31_nlo_as_0118_luxqed"):
+```
+setenv LHAPDF_DATA_PATH /cvmfs/sft.cern.ch/lcg/external/lhapdfsets/current:/cvmfs/sft.cern.ch/lcg/releases/MCGenerators/lhapdf/6.3.0-3c8e0/x86_64-centos7-gcc8-opt/share/LHAPDF
+```
+
+Setup HERWIGPATH (custom version compiled at the previous step):
+```
+setenv HERWIGPATH /.../HerwigInstallation/share/Herwig
+```
+
+Create configuration file for GEN step from LHE file
+```
+git cms-addpkg Configuration/Generator
+cp ../../singleLQ_13TeV_Pow_Herwig7_cff.py Configuration/Generator/python
+scram b
+cmsDriver.py Configuration/Generator/python/singleLQ_13TeV_Pow_Herwig7_cff.py --conditions auto:run2_mc -s GEN --datatier GEN -n 10 --eventcontent RAWSIM --python_filename singleLQ_13TeV_Pow_Herwig7_cfg.py --no_exec
+```
+
+Edit the "singleLQ_13TeV_Pow_Herwig7_cfg.py" config file.
+
+1) Set the input LHE file:
+```
+'set LesHouchesReader:FileName pwgevents.lhe',
+```
+This should be the .lhe text file created in the first step (indicate the full path).
+
+2) Set the number of events to be generated, and report frequency:
+```
+process.MessageLogger.cerr.FwkReport.reportEvery = 100 
+
+process.maxEvents = cms.untracked.PSet(
+        input = cms.untracked.int32(1000)
+)
+```
+
+Run GEN step:
+```
+cmsRun singleLQ_13TeV_Pow_Herwig7_cfg.py
+```
+
+The outputs are:
+"singleLQ_13TeV_Pow_Herwig7_cff_py_GEN.root" (GEN file in EDM format, 1000 events: 70 MB , about 1-2 min. on lxplus)
+"InterfaceMatchboxTest-S123456790.log" (log file of Herwig processing)
