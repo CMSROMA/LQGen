@@ -8,7 +8,7 @@ git clone git@github.com:CMSROMA/LQGen.git
 cd LQGen
 ```
 
-# Generate LQ events with POWHEG
+# Generate LQ events with POWHEG+HERWIG
 
 ## Install POWHEG-BOX-V2
 
@@ -180,3 +180,34 @@ cmsRun singleLQ_13TeV_Pow_Herwig7_cfg.py
 The outputs are:
 "singleLQ_13TeV_Pow_Herwig7_cff_py_GEN.root" (GEN file in EDM format, 1000 events: 70 MB , about 1-2 min. on lxplus)
 "InterfaceMatchboxTest-S123456790.log" (log file of Herwig processing)
+
+
+# Generator level analysis on LQ events with CMSSW
+
+(go to the main folder "LQGen")
+
+```
+mkdir GenAnalysis
+cd GenAnalysis
+
+scram project -n CMSSW_10_6_28_LQAna CMSSW CMSSW_10_6_28
+cd CMSSW_10_6_28_LQAna/src
+cmsenv
+
+git clone git@github.com:CMSROMA/GenAna.git CMSROMA/GenAna
+cd CMSROMA/GenAna/
+
+scram b
+```
+
+Edit config file "python/GenAnalq_cfg.py" as needed (i.e. input file).
+
+Run analysis:
+```
+cmsRun python/GenAnalq_cfg.py
+```
+
+Outputs:
+```
+GenAnalq.root (containing both histograms and tree)
+```
