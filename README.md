@@ -96,7 +96,7 @@ pip3 install --user mercurial
 
 gengetopt: Follow instructions at https://www.gnu.org/software/gengetopt/gengetopt.html. Then add the location of the gengetopt executable to your PATH:
 ```
-PATH=$PATH:/home/...../bin
+PATH=$HOME/.local/bin:/home/...../bin:$PATH
 ```
 ---
 
