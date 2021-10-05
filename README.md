@@ -79,6 +79,14 @@ p                py               pz               Energy           Mass
 ## Compile Herwig package for showering of LHE events
 
 
+Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
+```
+bash
+source setup.sh
+```
+
+---
+
 (Only the first time) Software needed for the installation. You can install it in local if you don't have root access (i.e. on lxplus at CERN).
 
 Mercurial:
@@ -90,13 +98,7 @@ gengetopt: Follow instructions at https://www.gnu.org/software/gengetopt/gengeto
 ```
 PATH=$PATH:/home/...../bin
 ```
-
-
-Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
-```
-bash
-source setup.sh
-```
+---
 
 ```
 cd HerwigInstallation
