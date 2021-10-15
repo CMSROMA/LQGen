@@ -7,6 +7,8 @@ evts=100000
 
 filename="list.txt"
 
+BASEDIR=$(pwd)
+echo "${BASEDIR}"
 for m in "${Mass[@]}"
 do 
 	for i in "${Y[@]}"
@@ -23,6 +25,6 @@ do
 		../pwhg_main powheg.input
 		cp pwgevents.lhe pwgevents_M${m}_Lambda${i}.lhe
 		cd .. 
-		echo "file:/data/mcampana/CMS/LQGen/LQue_M${m}_Lambda${i}/pwgevents_M${m}_Lambda${i}.lhe">>${filename}
+		echo "file:${BASEDIR}/LQue_M${m}_Lambda${i}/pwgevents_M${m}_Lambda${i}.lhe">>${filename}
 	done 
 done
