@@ -74,7 +74,21 @@ The output file is pwgevents.lhe (MLQ=3000 GeV, yLQ=1, 10k events, 8.8 MB). A ty
 p                py               pz               Energy           Mass
 0.000000000E+00  0.000000000E+00  9.634420299E+02  3.176460489E+03  3.026826835E+03
 ```
+### Generate a chosen set of mass and coupling
 
+edit the file Event_Genrator.sh
+```
+evts=Number of events chosen for .lhe file
+Mass=( Mass1 Mass2 ... MassN ) 
+Y=( l1 l2 ... lN )
+```
+The mass values have to be integer Number (es. 1000 2000). The coupling values (l) have to be written with a p to instead of the dot (es 0p1 for 0.1). 
+**There has to be a blank between each value of mass and coupling es Mass=( 1000 2000 3000 )**
+
+To run the script
+```
+./Event_Generator.sh
+```
 
 ## Compile Herwig package for showering of LHE events
 
