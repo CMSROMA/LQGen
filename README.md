@@ -76,7 +76,7 @@ p                py               pz               Energy           Mass
 ```
 ### Generate a chosen set of mass and coupling
 
-edit the file Event_Genrator.sh
+edit the file Event_Generator.sh
 ```
 evts=Number of events chosen for .lhe file
 Mass=( Mass1 Mass2 ... MassN ) 
