@@ -1,4 +1,4 @@
-Note: the file forCMS.tar is the one originally provided by the theorist in April 2021 (i.e. before the changes committed in this repository).
+BNote: the file forCMS.tar is the one originally provided by the theorist in April 2021 (i.e. before the changes committed in this repository).
 
 # Clone repository
 
@@ -87,10 +87,10 @@ OUTPUTDIR=/afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen
 evts=100
 evtsperfile=10
 ```
+
 The mass values have to be integer number in GeV (es. 1000 2000). The coupling values (l) have to be written with a p to instead of the dot (es 0p1 for 0.1). 
 **There has to be a blank between each value of mass and coupling es Mass=( 1000 2000 3000 )**
 
-```
 
 To run the script
 ```
@@ -98,6 +98,7 @@ To run the script
 ```
 
 At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory):
+
 ```
 bash-4.2$ ls SingleLQ_ueLQue_M2000_Lambda1p0/
 bornequiv  FlavRegList  powheg.input  pwg-btlgrid.top  pwgcounters.dat  pwggrid.dat  pwg-stat.dat  pwgxgrid.dat  SingleLQ_ueLQue_M2000_Lambda1p0.lh
