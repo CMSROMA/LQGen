@@ -167,34 +167,24 @@ Create configuration file for GEN step from LHE file
 ```
 git cms-addpkg Configuration/Generator
 cp ../../singleLQ_13TeV_Pow_Herwig7_cff.py Configuration/Generator/python
+cp ../../singleLQ_13TeV_Pow_Herwig7_cfg_mod.py .
 scram b
+```
+
+This is to recreate a configuration file accordingly with the latest release, but should not be necessary.
+```
 cmsDriver.py Configuration/Generator/python/singleLQ_13TeV_Pow_Herwig7_cff.py --conditions auto:run2_mc -s GEN --datatier GEN -n 10 --eventcontent RAWSIM --python_filename singleLQ_13TeV_Pow_Herwig7_cfg.py --no_exec
 ```
 
-Edit the "singleLQ_13TeV_Pow_Herwig7_cfg.py" config file.
-
-1) Set the input LHE file:
-```
-'set LesHouchesReader:FileName pwgevents.lhe',
-```
-This should be the .lhe text file created in the first step (indicate the full path).
-
-2) Set the number of events to be generated, and report frequency:
-```
-process.MessageLogger.cerr.FwkReport.reportEvery = 100 
-
-process.maxEvents = cms.untracked.PSet(
-        input = cms.untracked.int32(1000)
-)
-```
-
+Suggested to use directly the modified onfig file committed on github (singleLQ_13TeV_Pow_Herwig7_cfg_mod.py).
 Run GEN step:
 ```
-cmsRun singleLQ_13TeV_Pow_Herwig7_cfg.py
+cmsRun singleLQ_13TeV_Pow_Herwig7_cfg_mod.py files=pwgevents.lhe output=singleLQ_13TeV_Pow_Herwig7_GEN.root maxEvents=1000
 ```
+Note: The file "pwgevents.lhe" should be the .lhe text file created in the first step (indicate the full path).
 
 The outputs are:
-"singleLQ_13TeV_Pow_Herwig7_cff_py_GEN.root" (GEN file in EDM format, 1000 events: 70 MB , about 1-2 min. on lxplus)
+"singleLQ_13TeV_Pow_Herwig7_GEN.root" (GEN file in EDM format, 1000 events: 70 MB , about 1-2 min. on lxplus)
 "InterfaceMatchboxTest-S123456790.log" (log file of Herwig processing)
 
 
