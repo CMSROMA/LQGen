@@ -9,7 +9,7 @@ import io
 
 from glob import glob
 
-usage = "usage: python split_LHE.py -i "
+usage = "usage: python split_LHE.py -i SingleLQ_ueLQue_M2000_Lambda1p0/SingleLQ_ueLQue_M2000_Lambda1p0.lhe -o /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/TEST_1 -n 1000"
 
 parser = optparse.OptionParser(usage)
 

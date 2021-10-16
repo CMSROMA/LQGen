@@ -74,21 +74,41 @@ The output file is pwgevents.lhe (MLQ=3000 GeV, yLQ=1, 10k events, 8.8 MB). A ty
 p                py               pz               Energy           Mass
 0.000000000E+00  0.000000000E+00  9.634420299E+02  3.176460489E+03  3.026826835E+03
 ```
-### Generate a chosen set of mass and coupling
+### Generate a chosen set of mass and coupling and split the lhe file
 
-edit the file Event_Generator.sh
+edit the file make_LHE.sh
 ```
-evts=Number of events chosen for .lhe file
-Mass=( Mass1 Mass2 ... MassN ) 
-Y=( l1 l2 ... lN )
+LQPROCESS=SingleLQ_ueLQue
+INPUTPOWHEG=testpowheg/powheg.input
+Mass=( 2000 3000 )
+Y=( 1p0 )
+
+OUTPUTDIR=/afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen
+evts=100
+evtsperfile=10
 ```
-The mass values have to be integer Number (es. 1000 2000). The coupling values (l) have to be written with a p to instead of the dot (es 0p1 for 0.1). 
+The mass values have to be integer number in GeV (es. 1000 2000). The coupling values (l) have to be written with a p to instead of the dot (es 0p1 for 0.1). 
 **There has to be a blank between each value of mass and coupling es Mass=( 1000 2000 3000 )**
+
+```
 
 To run the script
 ```
-./Event_Generator.sh
+./make_LHE.sh
 ```
+
+At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory):
+```
+bash-4.2$ ls SingleLQ_ueLQue_M2000_Lambda1p0/
+bornequiv  FlavRegList  powheg.input  pwg-btlgrid.top  pwgcounters.dat  pwggrid.dat  pwg-stat.dat  pwgxgrid.dat  SingleLQ_ueLQue_M2000_Lambda1p0.lh
+e  split
+
+bash-4.2$ ls SingleLQ_ueLQue_M2000_Lambda1p0/split/
+SingleLQ_ueLQue_M2000_Lambda1p0__10.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__3.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__6.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__9.lhe
+SingleLQ_ueLQue_M2000_Lambda1p0__1.lhe   SingleLQ_ueLQue_M2000_Lambda1p0__4.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__7.lhe  SingleLQ_ueLQue_M2000_Lambda1p0.list
+SingleLQ_ueLQue_M2000_Lambda1p0__2.lhe   SingleLQ_ueLQue_M2000_Lambda1p0__5.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__8.lh
+```
+
 
 ## Compile Herwig package for showering of LHE events
 
