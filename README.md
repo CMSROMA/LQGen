@@ -189,6 +189,7 @@ Create configuration file for GEN step from LHE file
 git cms-addpkg Configuration/Generator
 cp ../../singleLQ_13TeV_Pow_Herwig7_cff.py Configuration/Generator/python
 cp ../../singleLQ_13TeV_Pow_Herwig7_cfg_mod.py .
+cp ../../make_GEN.py .
 scram b
 ```
 
@@ -208,6 +209,18 @@ The outputs are:
 "singleLQ_13TeV_Pow_Herwig7_GEN.root" (GEN file in EDM format, 1000 events: 70 MB , about 1-2 min. on lxplus)
 "InterfaceMatchboxTest-S123456790.log" (log file of Herwig processing)
 
+This is a script to run the GEN step on several samples, by providing a list of LHE files.
+```
+python make_GEN.py -i $CURRENTWORKDIR/SingleLQ_ueLQue_M2000_Lambda1p0/split/SingleLQ_ueLQue_M2000_Lambda1p0.list -o /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/HerwigInterface/CMSSW_10_6_28_LQGen/src/SingleLQ_ueLQue_M2000_Lambda1p0__GEN -s singleLQ_13TeV_Pow_Herwig7_cfg_mod.py -n 10
+```
+
+At the end, a ".list" file is created in the output directory with the list of all the GEN files. Ex. :
+```
+[santanas@lxplus789 src]$ ls /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/HerwigInterface/CMSSW_10_6_28_LQGen/src/SingleLQ_ueLQue_M2000_Lambda1p0__GEN
+SingleLQ_ueLQue_M2000_Lambda1p0__GEN.list  SingleLQ_ueLQue_M2000_Lambda1p0__2.root  SingleLQ_ueLQue_M2000_Lambda1p0__5.root  SingleLQ_ueLQue_M2000_Lambda1p0__8.root
+SingleLQ_ueLQue_M2000_Lambda1p0__1.root    SingleLQ_ueLQue_M2000_Lambda1p0__3.root  SingleLQ_ueLQue_M2000_Lambda1p0__6.root  SingleLQ_ueLQue_M2000_Lambda1p0__9.root
+SingleLQ_ueLQue_M2000_Lambda1p0__10.root   SingleLQ_ueLQue_M2000_Lambda1p0__4.root  SingleLQ_ueLQue_M2000_Lambda1p0__7.root
+```
 
 # Generator level analysis on LQ events with CMSSW
 
@@ -238,3 +251,5 @@ Outputs:
 ```
 GenAnalq.root (containing both histograms and tree)
 ```
+
+For more details go in the package area: git@github.com:CMSROMA/GenAna.git
