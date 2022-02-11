@@ -129,10 +129,24 @@ Mercurial:
 pip3 install --user mercurial
 ```
 
-gengetopt: Follow instructions at https://www.gnu.org/software/gengetopt/gengetopt.html. Then add the location of the gengetopt executable to your PATH:
+gengetopt: Follow instructions at https://www.gnu.org/software/gengetopt/gengetopt.html. Then add the location of the gengetopt executable to your PATH.
+
+For example:
 ```
-PATH=$HOME/.local/bin:$HOME/bin:$PATH
+wget https://ftp.gnu.org/gnu/gengetopt/gengetopt-2.23.tar.xz .
+tar -xvf gengetopt-2.23.tar.xz
+cd gengetopt-2.23
+./configure --prefix=/afs/cern.ch/work/s/santanas  
+make
+make install
 ```
+Then in the ~/.tcshrc file:
+```
+setenv PATH "/afs/cern.ch/work/s/santanas/bin:$PATH"
+```
+
+It should work also in the ~/.local directory (instead of /afs/cern.ch/work/s/santanas).
+
 ---
 
 ```
