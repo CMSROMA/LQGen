@@ -2,12 +2,15 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: Configuration/Generator/python/singleLQ_13TeV_Pow_Herwig7_cff.py --conditions auto:run2_mc -s GEN --datatier GEN -n 10 --eventcontent RAWSIM --python_filename singleLQ_13TeV_Pow_Herwig7_cfg.py --no_exec
+# with command line options: Configuration/Generator/python/singleLQ_13TeV_Pow_Herwig7_cff.py --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --era Run2_2018 -s GEN --datatier GEN -n 10 --eventcontent RAWSIM --python_filename singleLQ_13TeV_Pow_Herwig7_cfg.py --no_exec
 import FWCore.ParameterSet.Config as cms
+
+from Configuration.Eras.Era_Run2_2018_cff import Run2_2018
 
 import FWCore.ParameterSet.VarParsing as VarParsing
 
-process = cms.Process('GEN')
+process = cms.Process('GEN',Run2_2018)
+
 
 # setup 'standard'  options
 options = VarParsing.VarParsing('standard')
@@ -16,6 +19,8 @@ options.files = "/eos/cms/store/group/phys_exotica/lq-LQ-lq/test_GEN_1/singleLQ_
 options.output = "singleLQ_13TeV_Pow_Herwig7_M2000_Lambda0p1_GEN.root"
 options.maxEvents = -1
 options.parseArguments()
+
+
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -26,7 +31,7 @@ process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.Generator_cff')
-process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic50ns13TeVCollision_cfi')
+process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic25ns13TeVEarly2018Collision_cfi')
 process.load('GeneratorInterface.Core.genFilterSummary_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
@@ -36,6 +41,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.maxEvents = cms.untracked.PSet(
         input = cms.untracked.int32(options.maxEvents)
 )
+
 
 # Input source
 process.source = cms.Source("EmptySource")
@@ -74,7 +80,7 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
 # Other statements
 process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v4', '')
 
 process.generator = cms.EDFilter("Herwig7GeneratorFilter",
     configFiles = cms.vstring(),
@@ -125,7 +131,8 @@ process.generator = cms.EDFilter("Herwig7GeneratorFilter",
         'set /Herwig/Particles/e-:PDF /Herwig/Partons/NoPDF', 
         'set /Herwig/Particles/e+:PDF /Herwig/Partons/NoPDF', 
         'create ThePEG::LesHouchesFileReader LesHouchesReader', 
-        'set LesHouchesReader:FileName %s' % options.files[0], 
+       # 'set LesHouchesReader:FileName pwgevents.lhe', 
+	'set LesHouchesReader:FileName %s' % options.files[0],
         'set LesHouchesReader:AllowedToReOpen No', 
         'set LesHouchesReader:InitPDFs 0', 
         'set LesHouchesReader:Cuts /Herwig/Cuts/NoCuts', 
