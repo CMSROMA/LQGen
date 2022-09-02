@@ -127,6 +127,12 @@ SingleLQ_ueLQue_M2000_Lambda1p0__1.lhe   SingleLQ_ueLQue_M2000_Lambda1p0__4.lhe 
 SingleLQ_ueLQue_M2000_Lambda1p0__2.lhe   SingleLQ_ueLQue_M2000_Lambda1p0__5.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__8.lh
 ```
 
+### Format the LHE files
+
+The LHE files produced above need to be edited 1) to remove the forbidden string "#--" and 2) to have uncertainties stored in a CMS-readable format. Edit "EditLHE.py" with the location of your files and sets of mass and coupling points, then from any CMSSW area run: 
+```
+python EditLHE.py
+```
 
 ## Compile Herwig package for showering of LHE events
 
@@ -215,24 +221,18 @@ Setup HERWIGPATH (custom version compiled at the previous step):
 setenv HERWIGPATH /.../HerwigInstallation/share/Herwig
 ```
 
-Create configuration file for GEN step from LHE file
+Create configuration file for GEN step from LHE file. Depending on the year, different global tags and configurations should be used (check the cfg files for 2016, 2016APV, 2017, or 2018). The ID of the LQ depends on the couplings, and needs to be modified in the cfg file.
 ```
 git cms-addpkg Configuration/Generator
-cp ../../singleLQ_13TeV_Pow_Herwig7_cff.py Configuration/Generator/python
-cp ../../singleLQ_13TeV_Pow_Herwig7_cfg_mod.py .
+cp ../../config_utau_2016_cfg.py .
 cp ../../make_GEN.py .
 scram b
-```
-
-This is to recreate a configuration file accordingly with the latest release, but should not be necessary.
-```
-cmsDriver.py Configuration/Generator/python/singleLQ_13TeV_Pow_Herwig7_cff.py --conditions auto:run2_mc -s GEN --datatier GEN -n 10 --eventcontent RAWSIM --python_filename singleLQ_13TeV_Pow_Herwig7_cfg.py --no_exec
 ```
 
 Suggested to use directly the modified onfig file committed on github (singleLQ_13TeV_Pow_Herwig7_cfg_mod.py).
 Run GEN step:
 ```
-cmsRun singleLQ_13TeV_Pow_Herwig7_cfg_mod.py files=pwgevents.lhe output=singleLQ_13TeV_Pow_Herwig7_GEN.root maxEvents=1000
+cmsRun config_utau_2016_cfg.py files=pwgevents.lhe output=singleLQ_13TeV_Pow_Herwig7_GEN.root maxEvents=1000
 ```
 Note: The file "pwgevents.lhe" should be the .lhe text file created in the first step (indicate the full path).
 
@@ -242,7 +242,7 @@ The outputs are:
 
 This is a script to run the GEN step on several samples, by providing a list of LHE files.
 ```
-python make_GEN.py -i $CURRENTWORKDIR/SingleLQ_ueLQue_M2000_Lambda1p0/split/SingleLQ_ueLQue_M2000_Lambda1p0.list -o /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/HerwigInterface/CMSSW_10_6_28_LQGen/src/SingleLQ_ueLQue_M2000_Lambda1p0__GEN -s singleLQ_13TeV_Pow_Herwig7_cfg_mod.py -n 10
+python make_GEN.py -i $CURRENTWORKDIR/SingleLQ_ueLQue_M2000_Lambda1p0/split/SingleLQ_ueLQue_M2000_Lambda1p0.list -o /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/HerwigInterface/CMSSW_10_6_28_LQGen/src/SingleLQ_ueLQue_M2000_Lambda1p0__GEN -s config_utau_2016_cfg.py -n 10
 ```
 
 At the end, a ".list" file is created in the output directory with the list of all the GEN files. Ex. :
