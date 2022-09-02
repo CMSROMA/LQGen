@@ -10,11 +10,11 @@ cd LQGen
 
 # Generate LQ events with POWHEG+HERWIG
 
-## Install POWHEG-BOX-V2
+## Install POWHEG-BOX-RES
 
 Take the code from the repository:
 ```
-svn checkout --username anonymous --password anonymous svn://powhegbox.mib.infn.it/trunk/POWHEG-BOX-V2
+svn checkout --username anonymous --password anonymous svn://powhegbox.mib.infn.it/trunk/POWHEG-BOX-RES
 ```
 
 Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
@@ -23,7 +23,7 @@ bash
 source setup.sh
 ```
 
-Compile:
+Compile after changing the location of your POWHEG-BOX-RES in MakeFile (RES=/afs/cern.ch/work/c/ccaillol/generateLQ_newModel/POWHEG-BOX-RES):
 ```
 make
 ```
@@ -32,32 +32,46 @@ make
 
 Create a new folder for each signal hypothesis:
 ```
-mkdir LQue_M3000_Lambda1p0
-cp testpowheg/powheg.input LQue_M3000_Lambda1p0
-cd LQue_M3000_Lambda1p0
+mkdir LQutau_M3000_Lambda1p0
+cp testrun/powheg.input-NLO LQutau_M3000_Lambda1p0
+cd LQutau_M3000_Lambda1p0
 ```
 
-Edit the configuration (powheg.input):
+Edit the configuration (powheg.input-NLO):
 ```
+
+# LQ parameters
+mLQ 3000   ! Mass of the LQ
+
+
 numevts 10000     ! number of events to be generated
 
-lhans1 82400      ! pdf set for hadron 1 (LHA numbering for LUXlep-NNPDF31_nlo_as_0118_luxqed, https://lhapdf.hepforge.org/pdfsets)
-lhans2 82400      ! pdf set for hadron 2 (LHA numbering for LUXlep-NNPDF31_nlo_as_0118_luxqed, https://lhapdf.hepforge.org/pdfsets)
+# LQ couplings
 
+!  / y_1e y_1m y_1t \    u/d
+!  | y_2e y_2m y_2t |    c/s
+!  \ y_3e y_3m y_3t /    t/b
 
-whichproc "LQue"
-#whichproc "LQumu"
+y_1e 0
+y_2e 0
+y_3e 0
+y_1m 0
+y_2m 0
+y_3m 0
+y_1t 1.0
+y_2t 0
+y_3t 0
 
-LQmass 3000
-yLQ 1
+charge 1    ! Set this to the charge of the desired LQ's absolute charge times 3. Expect 1,2,4 or 5
+
 ```
 
 Generate events:
 ```
-../pwhg_main powheg.input
+../pwhg_main powheg.input-NLO
 ```
 
-The output file is pwgevents.lhe (MLQ=3000 GeV, yLQ=1, 10k events, 8.8 MB). A typical event:
+The output file is pwgevents.lhe. (The following LHE is from old instructions with ue couplings) (MLQ=3000 GeV, yLQ=1, 10k events, 8.8 MB). A typical event:
 ```
 <event>
       5  10001  6.16955E-04  3.02683E+03 -1.00000E+00  7.74632E-02
@@ -78,15 +92,18 @@ p                py               pz               Energy           Mass
 
 edit the file make_LHE.sh
 ```
-LQPROCESS=SingleLQ_ueLQue
-INPUTPOWHEG=testpowheg/powheg.input
-Mass=( 2000 3000 )
-Y=( 1p0 )
+LQPROCESS=LeptonInducedLQ_utau
+INPUTPOWHEG=testrun/powheg.input-NLO
+Mass=( 600 900 1200 1500 1800 2100 2400 2700 3000 )
+Y=(0p2 0p5 1p0 1p5 2p0)
+
 
 OUTPUTDIR=/afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen
 evts=100
 evtsperfile=10
 ```
+
+You also need to replace y_1t by the coupling you want to modify if not generating utau. 
 
 The mass values have to be integer number in GeV (es. 1000 2000). The coupling values (l) have to be written with a p to instead of the dot (es 0p1 for 0.1). 
 **There has to be a blank between each value of mass and coupling es Mass=( 1000 2000 3000 )**
@@ -97,7 +114,7 @@ To run the script
 ./make_LHE.sh
 ```
 
-At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory):
+At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory): (Old namings below)
 
 ```
 bash-4.2$ ls SingleLQ_ueLQue_M2000_Lambda1p0/

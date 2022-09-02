@@ -1,51 +1,94 @@
       subroutine setborn(p,bflav,born,bornjk,bmunu)
       implicit none
       include 'pwhg_math.h'
+      include 'pwhg_st.h'
       include 'nlegborn.h'
       include 'pwhg_flst.h'
-      include 'RES.h'
-      character * 30 proc
-      common/cproc/proc
-      
+      include 'pwhg_em.h'
+      include 'PhysPars.h'
       integer nlegs
       parameter (nlegs=nlegborn)
       real * 8 p(0:3,nlegs),bornjk(nlegs,nlegs)
       integer bflav(nlegs)
-      real * 8 bmunu(0:3,0:3,nlegs),bbmunu(0:3,0:3),born
-      integer j,k,mu,nu
-      real * 8 s,omcth,opcth,den,dotp,emampsq,gamma
-c Colour factors for colour-correlated Born amplitudes;
-c     Rule from 2.98 in FNO2007, leads to B_i j=B* C_i
-      if(proc == 'mu-tau-mu-tau') then
-         s=2*dotp(p(:,1),p(:,2))
-         omcth=4*dotp(p(:,1),p(:,3))/s
-         opcth=4*dotp(p(:,1),p(:,4))/s
-         born=(omcth**2*(ph_gr**4+ph_gl**4)+2*opcth**2*ph_gr**2*ph_gl**2)*s**2
-c     Denominator
-         den=(s-ph_RESmass2)**2+ph_RESmRESw**2
-c     Denominator, spin average and flux factor
-         born = born/den/4
-      elseif(proc == 'LQumu' .or. proc == 'LQue') then
-         s=2*dotp(p(:,1),p(:,2))
-         den=(s-ph_RESmass2)**2+ph_RESmRESw**2
-         gamma=ph_RESwidth
-         born = 4*pi*(gamma**2/den)       
-c     the numerator is s*ph_RESmass2, which near the resonance is an approximation for s**2;
-c     it might be better to restore s**2, as given by a tree-level computation, since
-c     it provides a stronger suppresion away from the resonance
-c     (no need for a mass window near the resonance)
-         born = born * s/ph_RESmass2
-c     the above includes the decay phase space. We should divide it out
-         born = born/(1/(8*pi))
-c     the 1/(2s) factor is provided by powheg, compensate for that
-         born = born * 2*s         
-      elseif(proc == 'emscattering' .or. proc == 'leptonscattering' ) then
-         born = emampsq(bflav,p)
-      endif
-      bmunu=0
-      bbmunu=0
-      end
+      real * 8 bmunu(0:3,0:3,nlegs),born,s
+      logical islepton
+      integer i,j,k,iq,il
+      real * 8 y
+      real * 8 powheginput
+      external powheginput
 
+
+c     Colour factors for colour-correlated Born amplitudes;
+c     p(0:3,i) are the 0,1,2,3 components of the momenta
+c     of the ith particle.
+c     i=1,2 are the incoming particles (momenta are incoming)
+c     i=3 is the outgoing particle  (momenta are outgoing)
+
+c     compute your cross section here as a function of the momentum
+c     and of the flavours of the particles, avalable in the
+c     bflav (integer) array
+      
+      if (abs(bflav(1)) .eq. 11 .or. abs(bflav(2)) .eq. 11) then
+         j = 1
+      elseif (abs(bflav(1)) .eq. 13 .or. abs(bflav(2)) .eq. 13) then
+         j = 2
+      elseif (abs(bflav(1)) .eq. 15 .or. abs(bflav(2)) .eq. 15) then
+         j = 3
+      elseif (abs(bflav(1)) .eq. 0 .or. abs(bflav(2)) .eq. 0) then
+         y = 0d0
+      else
+         WRITE(*,*) "Coupling is set to zero for this process.", bflav
+      endif
+
+      if (abs(bflav(1)) .eq. 1 .or. abs(bflav(2)) .eq. 1) then
+         i = 1
+      elseif (abs(bflav(1)) .eq. 2 .or. abs(bflav(2)) .eq. 2) then
+         i = 1
+      elseif (abs(bflav(1)) .eq. 3 .or. abs(bflav(2)) .eq. 3) then
+         i = 2
+      elseif (abs(bflav(1)) .eq. 4 .or. abs(bflav(2)) .eq. 4) then
+         i = 2
+      elseif (abs(bflav(1)) .eq. 5 .or. abs(bflav(2)) .eq. 5) then
+         i = 3
+      elseif (abs(bflav(1)) .eq. 6 .or. abs(bflav(2)) .eq. 6) then
+         i = 3
+      elseif (abs(bflav(1)) .eq. 0 .or. abs(bflav(2)) .eq. 0) then
+         y = 0d0
+      else
+         write(*,*) "Coupling is set to zero for this process.", bflav
+      endif
+      
+      y = ph_yLQ(i,j)
+      if (ph_BWgen_finitewidth) then
+         s = p(0,3)**2-p(1,3)**2-p(2,3)**2-p(3,3)**2
+         born = y**2 * s /4d0
+
+c     correct for 'running' width         
+         born = born * s / ph_mLQ**2         
+      else
+         born = y**2 * ph_mLQ**2 /4d0
+      endif
+
+      bmunu=0
+
+      bornjk(1,2) = 0d0
+      bornjk(2,1) = 0d0
+
+      if (abs(bflav(1)) .le. 6 ) then
+         iq = 1
+         il = 2
+      else
+         iq = 2
+         il = 1
+      endif
+
+      bornjk(il,3) = 0d0
+      bornjk(3,il) = 0d0
+
+      bornjk(iq,3) = born * 4d0/3d0
+      bornjk(3,iq) = born * 4d0/3d0
+
+      end
 
       subroutine borncolour_lh
 c Sets up the colour for the given flavour configuration
@@ -55,218 +98,256 @@ c should pick one with a probability proportional to
 c the value of the corresponding cross section, for the
 c kinematics defined in the Les Houches interface
       implicit none
-      character * 30 proc
-      common/cproc/proc
       include 'LesHouches.h'
-      include 'nlegborn.h'
-      include 'pwhg_flst.h'
       integer j
 c     neutral particles
-      icolup(:,1:4)=0
-      if(proc == 'LQumu' .or. proc == 'LQue'  ) then
-         do j=1,4
-            if(abs(idup(j))>0 .and. abs(idup(j))<7) then
-               if(idup(j)>0) then
-                  icolup(1,j)=501
-               else
-                  icolup(2,j)=501
-               endif
-            endif
-         enddo
+      icolup(1:2,1:3)=0
+c     colored particles
+      do j=1,2
+         if((idup(j).gt.0).and.(idup(j).le.6)) then
+            icolup(1,j)=501
+            icolup(2,j)=0
+            icolup(1,3)=501
+            icolup(2,3)=0
+         elseif((idup(j).lt.0).and.(idup(j).ge.-6)) then
+            icolup(1,j)=0
+            icolup(2,j)=501
+            icolup(1,3)=0
+            icolup(2,3)=501
+         endif
+      enddo
+      if(sum(abs(icolup)) == 0) then
+         write(*,*) ' borncolour_lh: invalid flavours ',idup(1:3)
+         call exit(-1)
       endif
       end
-
 
       subroutine finalize_lh
-c     Set up the resonances whose mass must be preserved
-c     on the Les Houches interface.
-c     
-c     lepton masses
+      implicit none 
       include 'LesHouches.h'
-      real *8 lepmass(3),decmass
-      common/clepmass/lepmass,decmass
-c     Resonance Z -> e-(3) e+(4)
-      real * 8 powheginput
-      logical, save :: ini=.true., ingamma
-      character * 30 proc
-      common/cproc/proc
-      integer j
-      if(ini) then
-c     replace incoming leptons with photons
-         ingamma=powheginput("#ingamma") == 1
-         ini=.false.
-      endif
-      if(ingamma) then
-         do j=1,2
-            if(abs(idup(j))>7) then
-               idup(j)=22
-            endif
-         enddo
-      endif
-      if(proc=='mu-tau-mu-tau') then
-         call add_resonance(23,3,4)
-      elseif(proc=='LQumu' .or. proc=='LQue') then
-c         call add_resonance(42,3,4)    
-         call add_resonance(9911561,3,4)  ! match herwig number scheme for LQ
-         icolup(:,3)=icolup(:,1)+icolup(:,2)
-c     fix quark flavour to conserve charge if the incoming lepton has been replaced by a photon
-         if(ingamma) then
-            do j=4,5
-               if(idup(j)==2) idup(j)=1
-               if(idup(j)==11) idup(j)=-11
-            enddo
-         endif
-      endif
-
-c$$$c     The following routine also performs the reshuffling of momenta if
-c$$$c     a massive decay is chosen
-c$$$      call momenta_reshuffle(3,4,5,decmass)
-      call lhefinitemasses
-      end
-
-
-
-c     i1<i2
-      subroutine momenta_reshuffle(ires,i1,i2,decmass)
-      implicit none
-      include 'LesHouches.h'
-      integer ires,i1,i2,j
-      real * 8 ptemp(0:3),ptemp1(0:3),beta(3),betainv(3),modbeta,decmass
-      if (i1.ge.i2) then
-         write(*,*) 'wrong sequence in momenta_reshuffle'
-         stop
-      endif
-cccccccccccccccccccccccccccccc
-c construct boosts from/to vector boson rest frame 
-      do j=1,3
-         beta(j)=-pup(j,ires)/pup(4,ires)
-      enddo
-      modbeta=sqrt(beta(1)**2+beta(2)**2+beta(3)**2)
-      do j=1,3
-         beta(j)=beta(j)/modbeta
-         betainv(j)=-beta(j)
-      enddo
-cccccccccccccccccccccccccccccccccccccccc
-c first decay product 
-      ptemp(0)=pup(4,i1)
-      do j=1,3
-         ptemp(j)=pup(j,i1)
-      enddo
-      call mboost(1,beta,modbeta,ptemp,ptemp)
-      ptemp1(0)=0.5d0*pup(5,ires)
-      do j=1,3
-         ptemp1(j)=ptemp(j)/ptemp(0)*sqrt(ptemp1(0)**2 -decmass**2)
-      enddo
-      call mboost(1,betainv,modbeta,ptemp1,ptemp)
-      do j=1,3
-         pup(j,i1)=ptemp(j)
-      enddo
-      pup(4,i1)=ptemp(0)
-c abs to avoid tiny negative values in case of neutrinos
-      pup(5,i1)=sqrt(abs(pup(4,i1)**2-pup(1,i1)**2
-     $     -pup(2,i1)**2-pup(3,i1)**2))
-      
-c second decay product 
-
-      ptemp(0)=pup(4,i2)
-      do j=1,3
-         ptemp(j)=pup(j,i2)
-      enddo
-      call mboost(1,beta,modbeta,ptemp,ptemp)
-      ptemp1(0)=0.5d0*pup(5,ires)
-      do j=1,3
-         ptemp1(j)=ptemp(j)/ptemp(0)*sqrt(ptemp1(0)**2 -decmass**2)
-      enddo
-      call mboost(1,betainv,modbeta,ptemp1,ptemp)
-      do j=1,3
-         pup(j,i2)=ptemp(j)
-      enddo
-      pup(4,i2)=ptemp(0)
-c abs to avoid tiny negative values in case of neutrinos
-      pup(5,i2)=sqrt(abs(pup(4,i2)**2-pup(1,i2)**2
-     $     -pup(2,i2)**2-pup(3,i2)**2))
-cccccccccccccccccccccccccccccccccccccccc
-      end
-
-
-
-      function emampsq(flav,p)
-      implicit none
-      integer flav(4)
-      double precision emampsq,p(0:3,4)
-      integer fl(4),itmp
-      double precision p1(0:3),p2(0:3),p3(0:3),p4(0:3),tmp(0:3)
-      double precision s,t,u
-      double precision chargeofid
-      include 'pwhg_em.h'
       include 'pwhg_math.h'
-      fl=flav
-      p1=p(:,1)
-      p2=p(:,2)
-      p3=p(:,3)
-      p4=p(:,4)
-      if(fl(1) == 22 .and. fl(2) /= 22) then
-c     we want the photon to be 2
-         itmp = fl(2)
-         fl(2) = fl(1)
-         fl(1) = itmp
-         tmp = p2
-         p2 = p1
-         p1 = tmp
+      real *8 lepmass(3),decmass,chargeofparticle_all,qlq
+      real *8 mLQ,ctheta,stheta,phi,random
+      integer j, id_quark, id_lep
+
+c     TODO : check the assignment of the decay channel if multiple choice is available 
+c     according to the relative BRs 
+      
+c     replace pdg number of LQ from 42 to Herwig convention
+      if (nup == 3 ) then   ! born event
+         qlq= chargeofparticle_all(idup(1))+chargeofparticle_all(idup(2))
+      else                  ! real event
+         qlq= chargeofparticle_all(idup(1))+chargeofparticle_all(idup(2))
+     &        - chargeofparticle_all(idup(4))          
       endif
-      if(fl(1) == fl(4) .and. fl(3) /= fl(4)) then
-c     we want 1 and 3 to be the same quark, if possible         
-         itmp = fl(3)
-         fl(3) = fl(4)
-         fl(4) = itmp
-         tmp = p3
-         p3 = p4
-         p4 = tmp
+      
+      select case ( int(qlq*3d0) ) 
+      case(-1)
+         idup(3) = 9911561
+      case(-2)
+         idup(3) = -9941561
+      case(-4)
+         idup(3) = 9921561
+      case(-5)
+         idup(3) = -9941561
+      case(1)
+         idup(3) = -9911561
+      case(2)
+         idup(3) = 9941561
+      case(4)
+         idup(3) = -9921561
+      case(5)
+         idup(3) = 9941561
+      end select            
+      
+      mLQ = dsqrt(pup(4,3)**2-pup(1,3)**2-pup(2,3)**2-pup(3,3)**2)
+
+      nup = nup+2
+      istup(3) = 2 ! LQ marked as resonances
+
+c$$$      do j=1,2
+c$$$         if ( is_lepton(idup(j)) ) then
+c$$$            idup(nup) = idup(j)
+c$$$         elseif(is_quark(idup(j))) then
+c$$$            idup(nup-1) = idup(j)            
+c$$$         endif
+c$$$         if (idup(j)==22) then
+c$$$            idup(nup) = -idup(4)
+c$$$         elseif (idup(j)==21) then 
+c$$$            idup(nup-1) = -idup(4)            
+c$$$         endif
+c$$$      enddo
+
+      call pick_decay_channel(random(), qlq, id_quark,id_lep)
+      idup(nup) = id_lep
+      idup(nup-1) = id_quark 
+      
+      mothup(1,nup) = 3
+      mothup(2,nup) = 3
+
+      mothup(1,nup-1) = 3       ! quark
+      mothup(2,nup-1) = 3
+            
+      icolup(1:2,nup-1) = icolup(1:2,3)
+      icolup(1:2,nup) = 0
+
+      spinup(nup-1) = 9d0
+      spinup(nup) = 9d0
+
+      istup(nup) = 1
+      istup(nup-1) = 1
+      
+      ctheta = 2d0*random()-1d0
+      stheta = dsqrt(1d0-ctheta**2)
+      phi = 2d0*pi*random()
+
+      pup(3,nup) = mLQ/2*ctheta
+      pup(1,nup) = mLQ/2*stheta*cos(phi)
+      pup(2,nup) = mLQ/2*stheta*sin(phi)
+      pup(4,nup) = mLQ/2
+      pup(5,nup) = 0d0
+      
+      pup(1:3,nup-1) = -pup(1:3,nup)
+      pup(4,nup-1) = mLQ/2
+      pup(5,nup-1) = 0d0
+
+      
+      call boost2resoninv4(pup(1:4,3),1,pup(1:4,nup-1),pup(1:4,nup-1))
+      call boost2resoninv4(pup(1:4,3),1,pup(1:4,nup),pup(1:4,nup))
+      
+      call lhefinitemasses
+      
+      contains
+
+      logical function is_lepton(id)
+      integer :: id
+
+      if ( abs(id)>= 11 .and. abs(id) <= 15) then
+         is_lepton = .true.
+      else
+         is_lepton = .false.
+      endif      
+      end 
+
+      logical function is_quark(id)
+      integer :: id
+
+      if ( abs(id)<= 6 .and. abs(id) > 0) then
+         is_quark = .true.
+      else
+         is_quark = .false.
+      endif      
+      end 
+      
+      end
+
+
+      subroutine pick_decay_channel(xr,LQ_charge,idq,idl)      
+      implicit none
+      include 'PhysPars.h'
+      real * 8, intent(in) :: xr , LQ_charge
+      integer, intent(out) :: idl,idq
+      real * 8,save :: tot_width_lq
+      real * 8 :: xn, xnp1
+      integer :: i,j
+      logical,save :: ini=.true.
+      integer :: to_flavs(4,2,3,3)
+      integer, parameter :: c1 = 1 , c5=2 , cd2=3, c4=4, q=1, l=2
+      
+      if (ini) then
+         tot_width_lq = 0d0
+         do i=1,3
+            do j=1,3
+c     uses LO formula for BRs, only squared couplings matter here
+               tot_width_lq = tot_width_lq + ph_yLQ(i,j)**2 
+            enddo
+         enddo
+         ini = .false.
       endif
-      s = sq(p1+p2)
-      t = sq(p1-p3)
-      u = sq(p1-p4)
-      if(fl(2) == 22 .and. fl(1) /=22) then
-c     l g -> l g
-         if(fl(1).ne.fl(3).or.fl(4).ne.22) goto 999
-         emampsq = (u**2+s**2)/(s**2*u)
-         emampsq = emampsq * chargeofid(fl(1))**4
-      elseif(abs(fl(1)) /= abs(fl(2)) ) then
-c     Scattering of different leptons
-         if(fl(1) .ne. fl(3) .or. fl(2) .ne. fl(4)) goto 999
-         emampsq = (u**2+s**2)/(s*t**2)
-         emampsq = emampsq * ( chargeofid(fl(1))*chargeofid(fl(2)) )**2
-      elseif(fl(1)==fl(2).and.fl(1)==fl(3).and.fl(1)==fl(4)) then
-c     Scattering of equal leptons
-         emampsq =
-     1    (2*((u**2+s**2)/t**2+(t**2+s**2)/u**2)+(4*s**2)/(t*u))/s/4
-         emampsq = emampsq * chargeofid(fl(1))**4
-      elseif(fl(1)+fl(2)==0 .and. fl(3)+fl(4)==0) then
-         if(fl(1) /= fl(3)) then
-c q qbar into different q qbar
-            emampsq = (u**2+t**2)/s**3
-            emampsq = emampsq * chargeofid(fl(1))**4
+      
+c     pick decay channel
+
+      xn = 0d0           
+      do i=1,3
+         do j=1,3
+            xnp1 = xn + ph_yLQ(i,j)**2/tot_width_lq
+            if (xr >xn .and. xr <= xnp1) then               
+               goto 10
+            endif
+            xn = xnp1
+         enddo
+      enddo
+      
+ 10   continue
+            
+      idl = 11+2*(j-1)
+      select case( -int(abs(LQ_charge*3))  )
+      case(-1)               
+         idq = 2+2*(i-1)
+      case(-5)
+         idq = -(2+2*(i-1))
+      case(-2)
+         idq = -(1+2*(i-1))
+      case(-4)
+         idq = 1+2*(i-1)         
+      end select
+
+      if (LQ_charge>0) then
+         idq = -idq
+         idl = -idl
+      endif
+      
+      end
+
+      
+      subroutine rmn_suppression(fact)
+      implicit none
+      real * 8 fact
+      include 'nlegborn.h'
+      include 'pwhg_kn.h'
+      real * 8 spart,pairmass,dotp
+      integer j,k
+      fact = 1
+      end
+
+
+      subroutine regular_suppression(fact)
+      implicit none
+      real * 8 fact
+      call rmn_suppression(fact)
+      end
+
+
+      subroutine global_suppression(c,fact)
+      implicit none
+      character * 1 c
+      real * 8 fact
+      fact=1
+      end
+
+
+      function chargeofparticle_all(id)
+c Returns the electric charge (in units of the positron charge)
+c of particle id (pdg conventions, gluon is zero)
+      implicit none
+      include 'pwhg_flg.h'
+      real * 8 chargeofparticle_all
+      integer id
+      if(abs(id).gt.0.and.abs(id).le.6) then
+         if(mod(abs(id),2).eq.0) then
+            chargeofparticle_all =  2d0/3
          else
-c q qbar into same q qbar
-            emampsq =
-     1    (2*((u**2+t**2)/s**2+(u**2+s**2)/t**2)+(4*u**2)/(s*t))/s/2
-            emampsq =
-     1       emampsq * ( chargeofid(fl(1))*chargeofid(fl(3)) )**2
+            chargeofparticle_all = -1d0/3
+         endif
+      elseif(abs(id).gt.10.and.abs(id).le.16) then
+         if(mod(abs(id),2).ne.0) then
+            chargeofparticle_all = -1d0
+         else
+            chargeofparticle_all = 0
          endif
       else
-         goto 999
+         chargeofparticle_all=0
       endif
-c     POWHEG supplies the 1/(2s) factor.
-      emampsq = emampsq * (2 * s) * (4*pi*em_alpha)**2
-      
-      return
- 999  continue
-      write(*,*) ' unforseen flavour structure:',flav
-      call exit(-1)
-      contains
-      double precision function sq(p) result(res)
-      double precision p(0:3)
-      res = p(0)**2 - p(1)**2 - p(2)**2 - p(3)**2
-      end function sq
+      if(id<0) chargeofparticle_all = - chargeofparticle_all
       end
       

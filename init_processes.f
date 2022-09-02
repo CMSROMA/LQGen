@@ -2,139 +2,366 @@
       implicit none
       include 'nlegborn.h'
       include 'pwhg_flst.h'
+      include 'pwhg_flg.h'
       include 'pwhg_kn.h'
+      include 'pwhg_st.h'
+      include 'pwhg_par.h'
+      include 'pwhg_pdf.h'
+      include 'pwhg_rad.h'
       include 'LesHouches.h'
       include 'pwhg_physpar.h'
-      include 'pwhg_st.h'
-      include 'pwhg_pdf.h'
-      integer id1,id2,j,k,j1,j2,j3,j4
-      logical debug
-      parameter (debug=.false.)
-      real * 8 powheginput
-      external powheginput
-c     lepton masses
-      real *8 lepmass(3),decmass
-      common/clepmass/lepmass,decmass
-      logical condition
-      real * 8 cmass, bmass
+      include 'PhysPars.h'
       character * 30 proc
       common/cproc/proc
-      real * 8 emampsq
-      integer idmap(-9:9)/-15,-13,-11,-6,-5,-4,-3,-2,-1,22,
-     1     1,2,3,4,5,6,11,13,15/                  
+      logical debug
+      parameter (debug=.false.)
+      integer i,j,k,tmp_switch,q,l
+      real * 8 mLQ,wLQ
+      real * 8 powheginput
+      integer lflav
+c     Set the colour representation of the leptoquark
+      call set_colour(42,'3','set')
+c     smartsig in POWHEG-BOX-RES does not check for equal
+c     Born but not for equal colour correlated or spin correlated
+c     amplitudes; switch it off
+      flg_bornsmartsig = .false.
       
-      pdf_nparton=22
-c     Set here lepton and quark masses for momentum reshuffle in the LHE event file
-      do j=1,st_nlight         
-         physpar_mq(j)=0d0
-      enddo
-      do j=1,3
-         physpar_ml(j)=lepmass(j)
-      enddo
-c     read eventual c and b masses from the input file
-      cmass=powheginput("#cmass_lhe")
-      if (cmass.gt.0d0) physpar_mq(4)=cmass
-      bmass=powheginput("#bmass_lhe")
-      if (bmass.gt.0d0) physpar_mq(5)=bmass
-
-      call powheginputstring('whichproc',proc)
-
-      flst_nborn=0
-      flst_bornres = 0
-      if(proc == 'mu-tau-mu-tau') then
-*********************************************************************
-***********            BORN SUBPROCESSES              ***************
-*********************************************************************
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/  13, -15,  13,-15 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/ -15,  13, -15, 13 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/ -13,  15, -13, 15 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/  15, -13,  15, -13 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/  13, -15,  15, -13 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/ -15,  13, -13,  15 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/ -13,  15, -15,  13 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/  15, -13,  13, -15 /)
+c     check if this is really needed
+c     for testing only NLO QCD
+      if (powheginput("#QCDonly") == 1) then 
+         flg_with_em = .false.
+      else
+         flg_with_em = .true.
       endif
-      if(proc == 'emscattering' ) then
-*********************************************************************
-***********            BORN SUBPROCESSES              ***************
-*********************************************************************
-         do j1=-9,9
-            do j2=-9,9
-               do j3=-9,9
-                  do j4= j3,9
-c     Only possibilities:
-                     if(.not. (
-     1                    (j1==j3 .and. j2==j4) .or.
-     2                    (j1==j4 .and. j2==j3) .or.
-     3                    (j1==-j2 .and. j3==-j4) ) .or.
-     4                    (j1==0 .and. j2==0) .or. (j3==0 .and. j4==0)) cycle
-                     if(powheginput("#lepalepdiff")==1 .and. .not. (abs(j1)>6.and. j1==-j2
-     1                    .and. abs(j3)>6 .and. j3==-j4 .and. abs(j1) /= abs(j3)) ) then
-                        cycle
-                     endif
-                     if(powheginput("#leptonlepton")==1 .and.
-     1                    (abs(j1)<7.or.abs(j2)<7.or.abs(j3)<7 .or.abs(j4)<7) ) then
-                        cycle
-                     endif
-                     if(powheginput("#leptongamma")==1 .and. .not.
-     1                    ( (j1 == 0 .and. abs(j2)>6) .or. (j2 == 0 .and. abs(j1)>6) )) then
-                        cycle
-                     endif
-                     if(powheginput("#leptonquark")==1 .and. .not.
-     1                    ( (abs(j1) > 6 .and. (j2 /= 0 .and. abs(j2)<7) ) .or.
-     2                      (abs(j2) > 6 .and. (j1 /= 0 .and. abs(j1)<7) ) ) ) then
-                        cycle
-                     endif
-                     flst_nborn=flst_nborn+1
-                     flst_born(:,flst_nborn)=(/  idmap(j1), idmap(j2),  idmap(j3), idmap(j4) /)
-                  enddo
-               enddo
+      
+c     for testing only NLO QED, uncomment
+      if (powheginput("#QEDonly") == 1) then 
+         flg_QEDonly = .true.
+      else
+         flg_QEDonly = .false.
+      endif
+
+      flg_withdamp = .true.
+      flg_bornzerodamp = .false.
+      rad_ptsqmin_em=powheginput("#ptsqmin_em")
+      if(rad_ptsqmin_em<0) rad_ptsqmin_em=0.5d0
+            
+      pdf_nparton = 22
+      par_isrtinycsi = 1d-8
+      par_isrtinyy = 1d-8
+      par_fsrtinycsi = 1d-8
+      par_fsrtinyy = 1d-8
+c flag to do importance sampling in x variable in collinear remnants
+      flg_collremnsamp=.true.      
+
+c This ends up in the LH common block, not very useful ..
+      lprup(1)=2000
+      
+c     Born flavour lists:
+      flst_nborn=1
+      if (ph_LQc .eq. 1 .or. ph_LQc .eq. 5) then
+         do i=1,3
+            do j=1,3
+               if (ph_yLQ(i,j) .ne. 0) then
+                  if (j .eq. 1) l = 11
+                  if (j .eq. 2) l = 13
+                  if (j .eq. 3) l = 15
+                  if (i .eq. 1) q = 2
+                  if (i .eq. 2) q = 4
+                  if (i .eq. 3) q = 6
+                  if (ph_LQc .eq. 1) then
+                     flst_born(:,flst_nborn) = [l,q,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [q,l,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [-l,-q,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [-q,-l,42]
+                     flst_nborn = flst_nborn+1
+                  elseif (ph_LQc .eq. 5) then
+                     flst_born(:,flst_nborn) = [-l,q,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [q,-l,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [l,-q,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [-q,l,42]
+                     flst_nborn = flst_nborn+1
+                  else
+                     continue
+                  endif
+               else
+                  continue
+               endif
             enddo
          enddo
       endif
-
-      if(proc == 'LQumu') then
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/  2, 13,  2, 13 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/  13, 2,  2, 13 /)
+      
+      if (ph_LQc .eq. 2 .or. ph_LQc .eq. 4) then
+         do i=1,3
+            do j=1,3
+               if (ph_yLQ(i,j) .ne. 0) then
+                  if (j .eq. 1) l = 11
+                  if (j .eq. 2) l = 13
+                  if (j .eq. 3) l = 15
+                  if (i .eq. 1) q = 1
+                  if (i .eq. 2) q = 3
+                  if (i .eq. 3) q = 5
+                  if (ph_LQc .eq. 2) then
+                     flst_born(:,flst_nborn) = [-l,q,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [q,-l,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [l,-q,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [-q,l,42]
+                     flst_nborn = flst_nborn+1
+                  elseif (ph_LQc .eq. 4) then
+                     flst_born(:,flst_nborn) = [l,q,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [q,l,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [-l,-q,42]
+                     flst_nborn = flst_nborn+1
+                     flst_born(:,flst_nborn) = [-q,-l,42]
+                     flst_nborn = flst_nborn+1
+                  else
+                     continue
+                  endif
+               else
+                  continue
+               endif
+            enddo
+         enddo
       endif
+      flst_nborn = flst_nborn - 1
+      
+c     Real flavour lists:
+      flst_nreal=1
+c     Strong corrections:
+      
+      if (ph_LQc .eq. 1 .or. ph_LQc .eq. 5) then
+         do i=1,3
+            do j=1,3
+               if (ph_yLQ(i,j) .ne. 0) then
+                  if (j .eq. 1) l = 11
+                  if (j .eq. 2) l = 13
+                  if (j .eq. 3) l = 15
+                  if (i .eq. 1) q = 2
+                  if (i .eq. 2) q = 4
+                  if (i .eq. 3) q = 6
+                  if (ph_LQc .eq. 1) then
+                     
+                     if (.not. flg_QEDonly) then 
+                        flst_real(:,flst_nreal) = [l,q,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [q,l,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [0,l,42,-q]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [l,0,42,-q]
+                        flst_nreal = flst_nreal + 1
+                     endif
 
-      if(proc == 'LQue') then
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/  2, 11,  2, 11 /)
-         flst_nborn=flst_nborn+1
-         flst_born(:,flst_nborn)=(/  11, 2,  2, 11 /)
-      endif
+                     if (flg_with_em) then  
+                        flst_real(:,flst_nreal) = [22,q,42,-l]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [q,22,42,-l]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                     
 
-      if(flst_nborn>maxprocborn) then
-         write(*,*) ' init_processes: number of born=',flst_nborn,
-     1    ' > maxprocborn=',maxprocborn,' fix nlegborn.h'
-         call exit(-1)
+                     if (.not. flg_QEDonly) then 
+                        flst_real(:,flst_nreal) = [-l,-q,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-q,-l,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [0,-l,42,q]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-l,0,42,q]
+                        flst_nreal = flst_nreal + 1
+                     endif
+
+                     if (flg_with_em) then                       
+                        flst_real(:,flst_nreal) = [22,-q,42,l]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-q,22,42,l]
+                        flst_nreal = flst_nreal + 1
+                     endif
+
+                     
+                  elseif (ph_LQc .eq. 5) then
+                     
+                     if (.not. flg_QEDonly) then 
+                        flst_real(:,flst_nreal) = [l,-q,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-q,l,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [0,l,42,q]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [l,0,42,q]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                     
+                     if (flg_with_em) then  
+                        flst_real(:,flst_nreal) = [22,-q,42,-l]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-q,22,42,-l]
+                        flst_nreal = flst_nreal + 1
+                     endif
+
+                     if (.not. flg_QEDonly) then 
+                        flst_real(:,flst_nreal) = [-l,q,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [q,-l,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [0,-l,42,-q]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-l,0,42,-q]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                     
+                     if (flg_with_em) then  
+                        flst_real(:,flst_nreal) = [22,q,42,l]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [q,22,42,l]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                  else
+                     continue
+                  endif
+               else
+                  continue
+               endif
+            enddo
+         enddo
       endif
       
-*********************************************************************
-***********REAL SUBPROCESSES              ***************
-*********************************************************************
-      flst_nreal=0
-      return
- 998  write(*,*) 'init_processes: increase maxprocreal'
-      stop
- 999  write(*,*) 'init_processes: increase maxprocborn'
-      stop
-      end
- 
+      if (ph_LQc .eq. 2 .or. ph_LQc .eq. 4) then
+         do i=1,3
+            do j=1,3
+               if (ph_yLQ(i,j) .ne. 0) then
+                  if (j .eq. 1) l = 11
+                  if (j .eq. 2) l = 13
+                  if (j .eq. 3) l = 15
+                  if (i .eq. 1) q = 1
+                  if (i .eq. 2) q = 3
+                  if (i .eq. 3) q = 5
+                  if (ph_LQc .eq. 2) then
+                     
+                     if (.not. flg_QEDonly) then                      
+                        flst_real(:,flst_nreal) = [-l,q,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [q,-l,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [0,-l,42,-q]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-l,0,42,-q]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                     
+                     if (flg_with_em) then  
+                        flst_real(:,flst_nreal) = [22,q,42,l]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [q,22,42,l]
+                        flst_nreal = flst_nreal + 1
+                     endif
 
-      block data lepmass_data
-      real *8 lepmass(3),decmass
-      common/clepmass/lepmass,decmass
-      data lepmass /0.51099891d-3,0.1056583668d0,1.77684d0/
+                     if (.not. flg_QEDonly) then 
+                        flst_real(:,flst_nreal) = [-q,l,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [l,-q,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [0,l,42,q]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [l,0,42,q]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                     
+                     if (flg_with_em) then  
+                        flst_real(:,flst_nreal) = [22,-q,42,-l]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-q,22,42,-l]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                  elseif (ph_LQc .eq. 4) then
+                     
+                     if (.not. flg_QEDonly) then 
+                        flst_real(:,flst_nreal) = [l,q,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [q,l,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [0,l,42,-q]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [l,0,42,-q]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                     
+                     if (flg_with_em) then  
+                        flst_real(:,flst_nreal) = [22,q,42,-l]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [q,22,42,-l]
+                        flst_nreal = flst_nreal + 1
+                     endif                        
+                        
+                     if (.not. flg_QEDonly) then 
+                        flst_real(:,flst_nreal) = [-l,-q,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-q,-l,42,0]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [0,-l,42,q]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-l,0,42,q]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                     
+                     if (flg_with_em) then  
+                        flst_real(:,flst_nreal) = [22,-q,42,l]
+                        flst_nreal = flst_nreal + 1
+                        flst_real(:,flst_nreal) = [-q,22,42,l]
+                        flst_nreal = flst_nreal + 1
+                     endif
+                     
+                  else
+                     continue
+                  endif
+               endif
+            enddo
+         enddo
+      endif
+      flst_nreal = flst_nreal -1
+      
+       WRITE(*,*) "Born Processes: "
+       WRITE(*,"(*(g0))") ( (flst_born(j,i)," ",j=1,3),
+     1  new_line("A"), i=1,flst_nborn)
+       WRITE(*,*) "Real Processes: "
+       WRITE(*,"(*(g0))") ( (flst_real(j,i)," ",j=1,4),
+     1  new_line("A"), i=1,flst_nreal)
+
+Cc     photon initiated
+Cc (krack) Ask why 42 is before 11 should be colourless first.
+C      flst_nreal = flst_nreal + 1
+C      flst_real(:,flst_nreal) = [22,2,42,-11]
+C      flst_nreal = flst_nreal + 1
+C      flst_real(:,flst_nreal) = [2,22,42,-11]
+Cc     Should we include also single production, i.e. [0,2,42,-11]?
+Cc     (it is non-resonant ...)
+
+c     The following is POWHEG magic ...
+      flst_bornlength=nlegborn
+      flst_reallength=nlegreal
+      flst_numfinal=1
+      flst_bornres=0
+      call buildresgroups(flst_nborn,nlegborn,flst_bornlength,
+     1     flst_born,flst_bornres,flst_bornresgroup,flst_nbornresgroup)
+
+      flst_realres=0
+      call buildresgroups(flst_nreal,nlegreal,flst_reallength,
+     1     flst_real,flst_realres,flst_realresgroup,flst_nrealresgroup)
+      
       end
+
+
+
+
+

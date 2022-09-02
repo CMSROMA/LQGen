@@ -41,6 +41,12 @@ contains
          &44.6,1.25e-2,60.8,1.41e-2,86.8,1.56e-2,121,2.16e-2,171,2.75e-2,&
          &257,3.32e-2,410,3.82e-2,902,5.76e-2/
     ! Fig 9 of CMS 1804.04528v2
+
+    if (ppt<pt(1)) then
+       res=1d-5
+       return
+    endif
+    
     do j=1,12
        if(ppt<pt(j)) exit
     enddo
