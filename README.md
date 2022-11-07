@@ -1,26 +1,41 @@
 BNote: the file forCMS.tar is the one originally provided by the theorist in April 2021 (i.e. before the changes committed in this repository).
 
-# Clone repository
+# Make main directory
 
-Clone the repository in a new folder:
 ```
-git clone git@github.com:CMSROMA/LQGen.git
-cd LQGen
+mkdir generateLQ
+cd generateLQ
 ```
 
-# Generate LQ events with POWHEG+HERWIG
-
-## Install POWHEG-BOX-RES
+# Install POWHEG-BOX-RES
 
 Take the code from the repository:
 ```
 svn checkout --username anonymous --password anonymous svn://powhegbox.mib.infn.it/trunk/POWHEG-BOX-RES
 ```
 
+# Clone repository
+
+Clone the repository in a new folder:
+```
+git clone https://github.com/cecilecaillol/LQGen.git -b nlo-xcouplings-thunc
+cd LQGen
+```
+
+# Generate LQ events with POWHEG+HERWIG
+
+## Compile POWHEG-BOX-RES
+
 Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
 ```
 bash
 source setup.sh
+```
+
+Add necessary empty directories:
+```
+mkdir include
+mkdir obj-gfortran
 ```
 
 Compile after changing the location of your POWHEG-BOX-RES in MakeFile (RES=/afs/cern.ch/work/c/ccaillol/generateLQ_newModel/POWHEG-BOX-RES):
@@ -33,11 +48,11 @@ make
 Create a new folder for each signal hypothesis:
 ```
 mkdir LQutau_M3000_Lambda1p0
-cp testrun/powheg.input-NLO LQutau_M3000_Lambda1p0
+cp testrun/powheg.input-NLO LQutau_M3000_Lambda1p0/powheg.input
 cd LQutau_M3000_Lambda1p0
 ```
 
-Edit the configuration (powheg.input-NLO):
+Edit the configuration (powheg.input):
 ```
 
 # LQ parameters
@@ -68,7 +83,7 @@ charge 1    ! Set this to the charge of the desired LQ's absolute charge times 3
 
 Generate events:
 ```
-../pwhg_main powheg.input-NLO
+../pwhg_main 
 ```
 
 The output file is pwgevents.lhe. (The following LHE is from old instructions with ue couplings) (MLQ=3000 GeV, yLQ=1, 10k events, 8.8 MB). A typical event:
