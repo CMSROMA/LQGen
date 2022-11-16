@@ -1,21 +1,30 @@
 BNote: the file forCMS.tar is the one originally provided by the theorist in April 2021 (i.e. before the changes committed in this repository).
 
+# Make main directory
+
+```
+mkdir generateLQ
+cd generateLQ
+```
+
+# Install POWHEG-BOX-RES
+
+Take the code from the repository:
+```
+svn checkout --username anonymous --password anonymous svn://powhegbox.mib.infn.it/trunk/POWHEG-BOX-RES
+```
+
 # Clone repository
 
 Clone the repository in a new folder:
 ```
-git clone git@github.com:CMSROMA/LQGen.git
+git clone https://github.com/cecilecaillol/LQGen.git -b nlo-xcouplings-thunc
 cd LQGen
 ```
 
 # Generate LQ events with POWHEG+HERWIG
 
-## Install POWHEG-BOX-V2
-
-Take the code from the repository:
-```
-svn checkout --username anonymous --password anonymous svn://powhegbox.mib.infn.it/trunk/POWHEG-BOX-V2
-```
+## Compile POWHEG-BOX-RES
 
 Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
 ```
@@ -23,7 +32,13 @@ bash
 source setup.sh
 ```
 
-Compile:
+Add necessary empty directories:
+```
+mkdir include
+mkdir obj-gfortran
+```
+
+Compile after changing the location of your POWHEG-BOX-RES in MakeFile (RES=/afs/cern.ch/work/c/ccaillol/generateLQ_newModel/POWHEG-BOX-RES):
 ```
 make
 ```
@@ -32,32 +47,46 @@ make
 
 Create a new folder for each signal hypothesis:
 ```
-mkdir LQue_M3000_Lambda1p0
-cp testpowheg/powheg.input LQue_M3000_Lambda1p0
-cd LQue_M3000_Lambda1p0
+mkdir LQutau_M3000_Lambda1p0
+cp testrun/powheg.input-NLO LQutau_M3000_Lambda1p0/powheg.input
+cd LQutau_M3000_Lambda1p0
 ```
 
 Edit the configuration (powheg.input):
 ```
+
+# LQ parameters
+mLQ 3000   ! Mass of the LQ
+
+
 numevts 10000     ! number of events to be generated
 
-lhans1 82400      ! pdf set for hadron 1 (LHA numbering for LUXlep-NNPDF31_nlo_as_0118_luxqed, https://lhapdf.hepforge.org/pdfsets)
-lhans2 82400      ! pdf set for hadron 2 (LHA numbering for LUXlep-NNPDF31_nlo_as_0118_luxqed, https://lhapdf.hepforge.org/pdfsets)
+# LQ couplings
 
+!  / y_1e y_1m y_1t \    u/d
+!  | y_2e y_2m y_2t |    c/s
+!  \ y_3e y_3m y_3t /    t/b
 
-whichproc "LQue"
-#whichproc "LQumu"
+y_1e 0
+y_2e 0
+y_3e 0
+y_1m 0
+y_2m 0
+y_3m 0
+y_1t 1.0
+y_2t 0
+y_3t 0
 
-LQmass 3000
-yLQ 1
+charge 1    ! Set this to the charge of the desired LQ's absolute charge times 3. Expect 1,2,4 or 5
+
 ```
 
 Generate events:
 ```
-../pwhg_main powheg.input
+../pwhg_main 
 ```
 
-The output file is pwgevents.lhe (MLQ=3000 GeV, yLQ=1, 10k events, 8.8 MB). A typical event:
+The output file is pwgevents.lhe. (The following LHE is from old instructions with ue couplings) (MLQ=3000 GeV, yLQ=1, 10k events, 8.8 MB). A typical event:
 ```
 <event>
       5  10001  6.16955E-04  3.02683E+03 -1.00000E+00  7.74632E-02
@@ -78,15 +107,18 @@ p                py               pz               Energy           Mass
 
 edit the file make_LHE.sh
 ```
-LQPROCESS=SingleLQ_ueLQue
-INPUTPOWHEG=testpowheg/powheg.input
-Mass=( 2000 3000 )
-Y=( 1p0 )
+LQPROCESS=LeptonInducedLQ_utau
+INPUTPOWHEG=testrun/powheg.input-NLO
+Mass=( 600 900 1200 1500 1800 2100 2400 2700 3000 )
+Y=(0p2 0p5 1p0 1p5 2p0)
+
 
 OUTPUTDIR=/afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen
 evts=100
 evtsperfile=10
 ```
+
+You also need to replace y_1t by the coupling you want to modify if not generating utau. 
 
 The mass values have to be integer number in GeV (es. 1000 2000). The coupling values (l) have to be written with a p to instead of the dot (es 0p1 for 0.1). 
 **There has to be a blank between each value of mass and coupling es Mass=( 1000 2000 3000 )**
@@ -97,7 +129,7 @@ To run the script
 ./make_LHE.sh
 ```
 
-At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory):
+At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory): (Old namings below)
 
 ```
 bash-4.2$ ls SingleLQ_ueLQue_M2000_Lambda1p0/
@@ -110,6 +142,12 @@ SingleLQ_ueLQue_M2000_Lambda1p0__1.lhe   SingleLQ_ueLQue_M2000_Lambda1p0__4.lhe 
 SingleLQ_ueLQue_M2000_Lambda1p0__2.lhe   SingleLQ_ueLQue_M2000_Lambda1p0__5.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__8.lh
 ```
 
+### Format the LHE files
+
+The LHE files produced above need to be edited 1) to remove the forbidden string "#--" and 2) to have uncertainties stored in a CMS-readable format. Edit "EditLHE.py" with the location of your files and sets of mass and coupling points, then from any CMSSW area run: 
+```
+python EditLHE.py
+```
 
 ## Compile Herwig package for showering of LHE events
 
@@ -198,24 +236,18 @@ Setup HERWIGPATH (custom version compiled at the previous step):
 setenv HERWIGPATH /.../HerwigInstallation/share/Herwig
 ```
 
-Create configuration file for GEN step from LHE file
+Create configuration file for GEN step from LHE file. Depending on the year, different global tags and configurations should be used (check the cfg files for 2016, 2016APV, 2017, or 2018). The ID of the LQ depends on the couplings, and needs to be modified in the cfg file.
 ```
 git cms-addpkg Configuration/Generator
-cp ../../singleLQ_13TeV_Pow_Herwig7_cff.py Configuration/Generator/python
-cp ../../singleLQ_13TeV_Pow_Herwig7_cfg_mod.py .
+cp ../../config_utau_2016_cfg.py .
 cp ../../make_GEN.py .
 scram b
-```
-
-This is to recreate a configuration file accordingly with the latest release, but should not be necessary.
-```
-cmsDriver.py Configuration/Generator/python/singleLQ_13TeV_Pow_Herwig7_cff.py --conditions auto:run2_mc -s GEN --datatier GEN -n 10 --eventcontent RAWSIM --python_filename singleLQ_13TeV_Pow_Herwig7_cfg.py --no_exec
 ```
 
 Suggested to use directly the modified onfig file committed on github (singleLQ_13TeV_Pow_Herwig7_cfg_mod.py).
 Run GEN step:
 ```
-cmsRun singleLQ_13TeV_Pow_Herwig7_cfg_mod.py files=pwgevents.lhe output=singleLQ_13TeV_Pow_Herwig7_GEN.root maxEvents=1000
+cmsRun config_utau_2016_cfg.py files=pwgevents.lhe output=singleLQ_13TeV_Pow_Herwig7_GEN.root maxEvents=1000
 ```
 Note: The file "pwgevents.lhe" should be the .lhe text file created in the first step (indicate the full path).
 
@@ -225,7 +257,7 @@ The outputs are:
 
 This is a script to run the GEN step on several samples, by providing a list of LHE files.
 ```
-python make_GEN.py -i $CURRENTWORKDIR/SingleLQ_ueLQue_M2000_Lambda1p0/split/SingleLQ_ueLQue_M2000_Lambda1p0.list -o /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/HerwigInterface/CMSSW_10_6_28_LQGen/src/SingleLQ_ueLQue_M2000_Lambda1p0__GEN -s singleLQ_13TeV_Pow_Herwig7_cfg_mod.py -n 10
+python make_GEN.py -i $CURRENTWORKDIR/SingleLQ_ueLQue_M2000_Lambda1p0/split/SingleLQ_ueLQue_M2000_Lambda1p0.list -o /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/HerwigInterface/CMSSW_10_6_28_LQGen/src/SingleLQ_ueLQue_M2000_Lambda1p0__GEN -s config_utau_2016_cfg.py -n 10
 ```
 
 At the end, a ".list" file is created in the output directory with the list of all the GEN files. Ex. :

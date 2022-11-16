@@ -1,0 +1,123 @@
+!randomseed 352345 ! uncomment to set the random seed to a value of your choice.
+                   ! It generates the call RM48IN(352345,0,0) (see the RM48 manual).
+                   ! THIS MAY ONLY AFFECTS THE GENERATION OF POWHEG EVENTS!
+                   ! If POWHEG is interfaced to a shower MC, refer to the shower MC
+                   ! documentation to set its seed.
+
+!Heavy flavour production parameters
+
+numevts 100000   ! number of events to be generated
+ih1   1        ! hadron 1
+ih2   1        ! hadron 2
+#ndns1 131      ! pdf for hadron 1 (hvqpdf numbering)
+#ndns2 131      ! pdf for hadron 2
+lhans1   82400         ! pdf set for hadron 1 (LHA numbering)
+lhans2   82400         ! pdf set for hadron 2 (LHA numbering)	
+ebeam1 6500    ! energy of beam 1
+ebeam2 6500    ! energy of beam 2
+facscfact 1    ! factorization scale factor: mufact=muref*facscfact 
+renscfact 1    ! renormalization scale factor: muren=muref*renscfact 
+#fixedscale 1    ! use ref. scale=qmass (default 0, use running scale)
+runningscale 0
+
+! Parameters to allow-disallow use of stored data
+use-old-grid 1    ! if 1 use old grid if file pwggrids.dat is present (# 1: regenerate)
+use-old-ubound 0  ! if 1 use norm of upper bounding function stored in pwgubound.dat, if present; # 1: regenerate
+
+ncall1 50000   ! number of calls for initializing the integration grid
+itmx1 5       ! number of iterations for initializing the integration grid
+ncall2 100000  ! number of calls for computing the integral and finding upper bound
+itmx2 5        ! number of iterations for computing the integral and finding upper bound
+foldcsi   1      ! number of folds on x integration
+foldy   1      ! number of folds on y integration
+foldphi 1      ! number of folds on phi integration
+nubound 100000  ! number of bbarra calls to setup norm of upper bounding function
+iymax 1        ! <= 10, normalization of upper bounding function in iunorm X iunorm square in y, log(m2qq)
+ixmax 1        ! <= 10, normalization of upper bounding function in iunorm X iunorm square in y, log(m2qq)
+xupbound 2      ! increase upper bound for radiation generation
+
+
+# manyseeds 1                                      ! (default 0) allow for the generation of different statistically independent samples (see Docs/Manyseeds.pdf)
+# parallelstage 1                                  ! which stage of parallel run 1..4
+# xgriditeration 1                                 ! which grid iteration when in parallelstage 1
+
+# technical parameter
+bornsmartsig 0
+testplots 1
+
+# LQ parameters
+mLQ 2000   ! Mass of the LQ
+
+# the user can provide the width as input; otherwise the program computes the width
+# with the simplest assumption (for example neglecting SU(2) sector) 
+# widthLQ 39.8d0
+
+# if activated, the LQ mass is generated according to a BW within a given mass window
+BWgen 1
+LQmasslow 200
+LQmasshigh 5000
+
+# used in the template analysis, not in generation
+ptcutlep 0
+ptcutjet 0 
+etacutlep 0
+etacutjet 0
+mLQcuthi 0
+mLQcutlo 0
+recombination 1
+smear 0
+
+# for LO only 
+bornonly 1
+LOevents 1
+
+# LQ couplings
+
+!  / y_1e y_1m y_1t \    u/d
+!  | y_2e y_2m y_2t |    c/s
+!  \ y_3e y_3m y_3t /    t/b
+
+y_1e 0
+y_2e 0
+y_3e 0
+y_1m 0
+y_2m 0
+y_3m 0.3
+y_1t 0
+y_2t 0
+y_3t 0
+
+charge 2    ! Set this to the charge of the desired LQ's absolute charge times 3. Expect 1,2,4 or 5 
+
+# if 1, alphas is taken from LHAPDF
+alphas_from_pdf 1
+
+
+# alphaQED (needed for QED correction)
+# uncomment the following if you want a fixed coupling
+# at the value XXX; otherwise the program will use
+# a running coupling evaluated at the same renormalisation scale
+# muR as the one used in the QCD calculation
+
+# fixed_alphaQED 1
+# alphaQED XXX
+
+
+
+# weights for scale variations 
+#------------------------------------------------
+#   SCALE VARIATION & REWEIGHTING
+#------------------------------------------------
+storeinfo_rwgt      1    ! store info to allow for reweighting
+
+rwl_file '-'
+<initrwgt>
+<weightgroup name='First-Weights'>
+<weight id='11'> renscfact=1.0 facscfact=1.0  </weight>
+<weight id='12'> renscfact=1.0 facscfact=2.0  </weight>
+<weight id='21'> renscfact=2.0 facscfact=1.0  </weight>
+<weight id='22'> renscfact=2.0 facscfact=2.0  </weight>
+<weight id='1H'> renscfact=1.0 facscfact=0.5  </weight>
+<weight id='H1'> renscfact=0.5 facscfact=1.0  </weight>
+<weight id='HH'> renscfact=0.5 facscfact=0.5  </weight>
+</initrwgt>

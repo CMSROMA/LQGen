@@ -1,140 +1,112 @@
       subroutine init_couplings
       implicit none
-c      include 'PhysPars.h'
+      include 'PhysPars.h'
       include 'pwhg_st.h'
       include 'pwhg_math.h'
       include 'nlegborn.h'
       include 'pwhg_kn.h'
       include 'pwhg_em.h'
-      include 'RES.h'
+      include 'pwhg_physpar.h'
+      include 'pwhg_flst.h'
       real * 8 mass_low,mass_high,tmpwidth
-      real * 8 powheginput
+      real * 8 powheginput,alphaqed
+      real * 8, parameter :: em_alpha0 = 1/137.035999084d0
       external powheginput
       logical verbose
       parameter(verbose=.true.)
-      character * 30 proc
-      common/cproc/proc
-      call powheginputstring('whichproc',proc)
+      integer i,j
+      logical withtops
+      
 c     Just a value
-      st_alpha=0.12
-      if(proc == 'mu-tau-mu-tau') then
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-cccccc   INDEPENDENT QUANTITIES       
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-         ph_RESmass = powheginput("ZPmass")
+      st_alpha =0.118
+      em_alpha = powheginput("#alphaQED")
+      if (em_alpha<0d0) em_alpha = em_alpha0
 
-         ph_gr=powheginput("#gr")
-         ph_gl=powheginput("#gl")
+      kn_ktmin=0
 
-         ph_RESwidth = powheginput("#ZPwidth")
-
-         if(  ph_gr==-1000000 .and.
-     1        ph_gl==-1000000 .and.
-     2        ph_RESwidth < 0) then
-            write(*,*) ' must enter at least one of gr, gl, ZPwidth'
-            write(*,*) ' exiting ...'
-            call exit(-1)
-         endif
-         
-         if(  ph_gr/=-1000000 .and.
-     1        ph_gl/=-1000000 .and.
-     2        ph_RESwidth > 0) then
-            write(*,*) ' must enter at only one of gr, gl, ZPwidth'
-            write(*,*) ' exiting ...'
-            call exit(-1)
-         endif
-         
- 
-         
-         if (ph_RESwidth.le.0d0) then
-            if(ph_gr==-1000000) ph_gr=0
-            if(ph_gl==-1000000) ph_gl=0
-            ph_RESwidth = (ph_gr**2+ph_gl**2)/(12*pi) * ph_RESmass
-         else
-c     rescale gr and gl to match the ZPwidth
-            tmpwidth=(ph_gr**2+ph_gl**2)/(12*pi) * ph_RESmass
-            ph_gr=ph_gr*sqrt(ph_RESwidth/tmpwidth)
-            ph_gl=ph_gl*sqrt(ph_RESwidth/tmpwidth)
-            write(*,*) 'gr and gl rescaled to match the input width'
-            write(*,*) 'width=',
-     1           (ph_gr**2+ph_gl**2)/(12*pi) * ph_RESmass, ph_RESwidth
-         endif
-      elseif(proc == 'LQumu' .or. proc == 'LQue') then
-         
-         ph_RESmass = powheginput("LQmass")
-
-         ph_yLQ=powheginput("#yLQ")
-         
-         ph_RESwidth = powheginput("#LQwidth")
-         if(  ph_yLQ==-1000000 .and.
-     2        ph_RESwidth == -1000000) then
-            write(*,*) ' must enter at least one of yLQ or LQwidth'
-            write(*,*) ' exiting ...'
-            call exit(-1)
-         endif
-
-         if(  ph_yLQ/=-1000000 .and.
-     2        ph_RESwidth /= -1000000) then
-            write(*,*) ' must enter only one of yLQ or LQwidth'
-            write(*,*) ' exiting ...'
-            call exit(-1)
-         endif
-
-         if (ph_RESwidth.le.0d0) then
-            ph_RESwidth = ph_yLQ**2/(16*pi) * ph_RESmass
-         else
-            ph_yLQ = sqrt( 16 * pi* ph_RESwidth/ph_RESmass )
-            write(*,*) 'yLQ computed from width'
-            write(*,*) 'width=',
-     1          ph_yLQ**2/(16*pi) * ph_RESmass , ph_RESwidth
-         endif
+      ph_mLQ=powheginput("#mLQ")
+      if (ph_mLQ < 0) ph_mLQ = 500d0
+      write(*,*) 'leptoquark mass set to ',ph_mLQ
+      physpar_phspmasses(42)=ph_mLQ
+           
+      if (powheginput("#BWgen") == 1) then
+         ph_BWgen_finitewidth = .true.
       else
-         em_alpha = 1/137.035999084d0
-c     No resonances; impose a ktmin
-         ph_RESmass = 0
-         ph_RESwidth = 0
-         kn_ktmin=powheginput("bornktmin")
-         if(kn_ktmin<0) then
-            write(*,*) ' You must specify a ktmin for this kind of processes!'
-            write(*,*) ' Exiting ...'
-            call exit(-1)
-         endif
+         ph_BWgen_finitewidth = .false.
       endif
 
-      ph_RESmass2 = ph_RESmass**2
-      ph_RESmRESw = ph_RESmass * ph_RESwidth
+      ph_LQmasslow = powheginput("#LQmasslow")
+      ph_LQmasshigh= powheginput("#LQmasshigh")
+      if (ph_LQmasslow<0d0) ph_LQmasslow = 1d0
+      if (ph_LQmasshigh<0d0) ph_LQmasslow = 2*ph_mLQ
       
+C TODO should check, that there is a value for each coupling. If not
+C present then automatically set to zero. Same for the charge of LQ.
+
+      ph_yLQ(1,1) = powheginput("#y_1e")
+      ph_yLQ(1,2) = powheginput("#y_1m")
+      ph_yLQ(1,3) = powheginput("#y_1t")
+
+      ph_yLQ(2,1) = powheginput("#y_2e")
+      ph_yLQ(2,2) = powheginput("#y_2m")
+      ph_yLQ(2,3) = powheginput("#y_2t")
+      
+      ph_yLQ(3,1) = powheginput("#y_3e")
+      ph_yLQ(3,2) = powheginput("#y_3m")
+      ph_yLQ(3,3) = powheginput("#y_3t")
+
+      ph_LQc = powheginput("#charge") 
+
+c     switch off top couplings unless explicitly asked
+      withtops =.false.
+      if(powheginput("#withtops") == 1) then
+         withtops =.true.
+      endif
+      
+      if ( (.not.withtops) .and.
+     1     (abs(ph_LQc) == 1d0 .or. abs(ph_LQc) ==5d0)   ) then
+         ph_yLQ(3,:)= 0d0
+      endif
+
+c     the user can provide the LQ width by theirself
+c     otherwise it is computed without assuming any SU(2) relations
+      
+      ph_wLQ=powheginput("#widthLQ")
+      if (ph_wLQ < 0) then
+         ph_wLQ = 0d0
+         do i=1,3
+            do j=1,3
+c     LO partial width
+               ph_wLQ = ph_wLQ +
+     1              ph_yLQ(i,j)**2 * ph_mLQ/16/pi
+            enddo
+         enddo         
+      endif
+      
+      write(*,*) 'leptoquark width set to ',ph_wLQ
+      physpar_phspwidths(42)=ph_wLQ
+      
+c      quark and lepton masses
+
+      physpar_mq(1:3) = 0d0
+      physpar_mq(4) = 1.5d0
+      physpar_mq(5) = 4.75d0
+      physpar_mq(6) = 172d0
+      physpar_ml(1) = 0.000511d0 
+      physpar_ml(2) = 0.105d0
+      physpar_ml(3) = 1.77d0
       
 c     number of light flavors
-      st_nlight = 5
-
-c     mass window
-      mass_low = powheginput("#mass_low")
-      if (mass_low.lt.0d0) mass_low=1
-      mass_high = powheginput("#mass_high")
-      if (mass_high.lt.0d0) mass_high=sqrt(kn_sbeams)   
-
-      if(kn_ktmin>0) then
-         mass_low = max(mass_low, 2*kn_ktmin)
+c     if withtops, add the top quark to the list of collinear particles
+      if (withtops) then
+         st_nlight = 6
+         flst_ncollparticles = 12
+         flst_collparticles(1:flst_ncollparticles)=
+     1        (/ 0,1,2,3,4,5,6,11,13,15,21,22 /)
+         
+      else         
+         st_nlight = 5
       endif
       
-      ph_RESmass2low=mass_low**2
-      ph_RESmass2high=min(kn_sbeams,mass_high**2)
-
-      if( ph_RESmass2low.ge.ph_RESmass2high ) then
-         write(*,*) "Error in init_couplings: mass_low >= mass_high"
-         call exit(1)
-      endif
-
-      if(verbose) then
-      write(*,*) '*************************************'
-      write(*,*) 'RES mass = ',ph_RESmass
-      write(*,*) 'RES width = ',ph_RESwidth
-      write(*,*) '*************************************'
-      write(*,*)
-      write(*,*) '*************************************'
-      write(*,*) sqrt(ph_RESmass2low),'< M_Z <',sqrt(ph_RESmass2high)
-      write(*,*) '*************************************'
-      endif
       end
 
