@@ -62,7 +62,7 @@ else ifeq ("$(shell whoami)","nudzeim")
 RES=/Users/nudzeim/POWHEG-BOX-RES
 else
 #RES=../
-RES=/afs/cern.ch/work/c/ccaillol/generateLQ_newModel/POWHEG-BOX-RES
+RES=/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/POWHEG-BOX-RES
 endif
 
 VPATH= ./:$(RES)/Beta-Progress/:$(RES):$(OBJ)/

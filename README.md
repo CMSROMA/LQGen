@@ -18,7 +18,7 @@ svn checkout --username anonymous --password anonymous svn://powhegbox.mib.infn.
 
 Clone the repository in a new folder:
 ```
-git clone https://github.com/cecilecaillol/LQGen.git -b nlo-xcouplings-thunc
+git clone git@github.com:CMSROMA/LQGen.git
 cd LQGen
 ```
 
@@ -47,19 +47,20 @@ make
 
 Create a new folder for each signal hypothesis:
 ```
-mkdir LQutau_M3000_Lambda1p0
-cp testrun/powheg.input-NLO LQutau_M3000_Lambda1p0/powheg.input
-cd LQutau_M3000_Lambda1p0
+mkdir LQumu_M3000_Lambda1p0
+cp testrun/powheg.input-NLO LQumu_M3000_Lambda1p0/powheg.input
+cd LQumu_M3000_Lambda1p0
 ```
 
-Edit the configuration (powheg.input):
+Edit the configuration (powheg.input).
+Below an example to create a LQ with u+mu coupling and charge 1/3 (i.e. in the config y_1m=1.0 and charge = 1/3 * 3 = 1)
 ```
 
 # LQ parameters
 mLQ 3000   ! Mass of the LQ
 
 
-numevts 10000     ! number of events to be generated
+numevts 100     ! number of events to be generated
 
 # LQ couplings
 
@@ -70,14 +71,14 @@ numevts 10000     ! number of events to be generated
 y_1e 0
 y_2e 0
 y_3e 0
-y_1m 0
+y_1m 1.0
 y_2m 0
 y_3m 0
-y_1t 1.0
+y_1t 0
 y_2t 0
 y_3t 0
 
-charge 1    ! Set this to the charge of the desired LQ's absolute charge times 3. Expect 1,2,4 or 5
+charge 1    ! Set this to the charge of the desired LQ's absolute charge times 3. Expect 1, 5 (for up-type quarks) or 2, 4 (for down-type quarks)
 
 ```
 
@@ -86,39 +87,67 @@ Generate events:
 ../pwhg_main 
 ```
 
-The output file is pwgevents.lhe. (The following LHE is from old instructions with ue couplings) (MLQ=3000 GeV, yLQ=1, 10k events, 8.8 MB). A typical event:
+The output file is pwgevents.lhe. (MLQ=3000 GeV, y_1m=1.0, charge = 1, 100 events, 0.25 MB). A typical event:
 ```
+<init>
+     2212     2212  6.50000E+03  6.50000E+03     -1     -1     -1     -1     -4      1
+  5.66914E-04  2.70456E-07  1.00000E+00   2000
+</init>
 <event>
-      5  10001  6.16955E-04  3.02683E+03 -1.00000E+00  7.74632E-02
-       2    -1     0     0   501     0  0.000000000E+00  0.000000000E+00  2.069951259E+03  2.069951259E+03  0.000000000E+00  0.00000E+00  9.000E+00
-      11    -1     0     0     0     0  0.000000000E+00  0.000000000E+00 -1.106509229E+03  1.106509229E+03  0.000000000E+00  0.00000E+00  9.000E+00
- 9911561     2     1     2   501     0  0.000000000E+00  0.000000000E+00  9.634420299E+02  3.176460489E+03  3.026826835E+03  0.00000E+00  9.000E+00
-       2     1     3     3   501     0 -9.764825564E+02 -9.832978689E+02  1.120091442E+03  1.781852328E+03  0.000000000E+00  0.00000E+00  9.000E+00
-      11     1     3     3     0     0  9.764825564E+02  9.832978689E+02 -1.566494120E+02  1.394608160E+03  5.109989100E-04  0.00000E+00  9.000E+00
-#rwgt            1           1   4.3750714067884451E-004    54217137           1           0
-</event>
+      6   2000  5.72273E-04  2.29099E+02 -1.00000E+00  1.09546E-01
+      13    -1     0     0     0     0  0.000000000E+00  0.000000000E+00  1.497596761E+03  1.497596761E+03  0.000000000E+00  0.00000E+00  9.000E+00
+       2    -1     0     0   511     0  0.000000000E+00  0.000000000E+00 -1.743563962E+03  1.743563962E+03  0.000000000E+00  0.00000E+00  9.000E+00
+ 9911561     2     1     2   501     0 -1.820140531E+02  1.391297968E+02 -2.072545192E+02  3.008814242E+03  2.992912042E+03  0.00000E+00  9.000E+00
+      21     1     1     2   511   501  1.820140531E+02 -1.391297968E+02 -3.871268193E+01  2.323464818E+02  4.396221379E-06  0.00000E+00  9.000E+00
+       2     1     3     3   501     0  6.152253429E+02  6.364104164E+02 -1.296781053E+03  1.570083291E+03  0.000000000E+00  0.00000E+00  9.000E+00
+      13     1     3     3     0     0 -7.972393960E+02 -4.972806197E+02  1.089526534E+03  1.438730951E+03  1.050000000E-01  0.00000E+00  9.000E+00
+#rwgt            1           1   3.0282270117710407E-004    54217137    24108698           0           1           0
+<weights>
+0.57227E-03
+0.63668E-03
+0.58882E-03
+0.65149E-03
+0.51160E-03
+....
+
+<event>
+      6   2000  5.72273E-04  2.83713E+01 -1.00000E+00  1.54629E-01
+       2    -1     0     0   501     0  0.000000000E+00  0.000000000E+00  2.651952096E+03  2.651952096E+03  0.000000000E+00  0.00000E+00  9.000E+00
+      22    -1     0     0     0     0  0.000000000E+00  0.000000000E+00 -1.118921947E+03  1.118921947E+03  0.000000000E+00  0.00000E+00  9.000E+00
+ 9911561     2     1     2   501     0 -2.819245267E+01 -3.180888494E+00  1.796852952E+03  3.505530087E+03  3.009859752E+03  0.00000E+00  9.000E+00
+     -13     1     1     2     0     0  2.819245267E+01  3.180888494E+00 -2.638228034E+02  2.653439561E+02  1.050000000E-01  0.00000E+00  9.000E+00
+       2     1     3     3   501     0  3.388162995E+02  1.395742306E+03  1.400208563E+03  2.005860686E+03  0.000000000E+00  0.00000E+00  9.000E+00
+      13     1     3     3     0     0 -3.670087522E+02 -1.398923195E+03  3.966443892E+02  1.499669401E+03  1.050000000E-01  0.00000E+00  9.000E+00
+#rwgt            1           2   4.8889441859415145E-004    54217137    24108855           0           1           0
+<weights>
+0.57227E-03
+0.54891E-03
+0.57044E-03
+0.54060E-03
+0.61519E-03
 ...
 
 9911561 is the Leptoquark 
-p                py               pz               Energy           Mass
-0.000000000E+00  0.000000000E+00  9.634420299E+02  3.176460489E+03  3.026826835E+03
+px                py               pz               Energy           Mass
+-1.820140531E+02  1.391297968E+02 -2.072545192E+02  3.008814242E+03  2.992912042E+03
 ```
+
 ### Generate a chosen set of mass and coupling and split the lhe file
 
 edit the file make_LHE.sh
 ```
-LQPROCESS=LeptonInducedLQ_utau
+LQPROCESS=LeptonInducedLQ_umu
 INPUTPOWHEG=testrun/powheg.input-NLO
-Mass=( 600 900 1200 1500 1800 2100 2400 2700 3000 )
-Y=(0p2 0p5 1p0 1p5 2p0)
+Mass=( 1000 2000 3000 )
+Y=( 0p1 1p0 )
 
 
-OUTPUTDIR=/afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen
-evts=100
-evtsperfile=10
+OUTPUTDIR=/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen
+evts=1000
+evtsperfile=100
 ```
 
-You also need to replace y_1t by the coupling you want to modify if not generating utau. 
+You also need to replace y_1m by the coupling you want to modify if not generating umu. 
 
 The mass values have to be integer number in GeV (es. 1000 2000). The coupling values (l) have to be written with a p to instead of the dot (es 0p1 for 0.1). 
 **There has to be a blank between each value of mass and coupling es Mass=( 1000 2000 3000 )**
@@ -129,17 +158,19 @@ To run the script
 ./make_LHE.sh
 ```
 
-At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory): (Old namings below)
+At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory):
 
 ```
-bash-4.2$ ls SingleLQ_ueLQue_M2000_Lambda1p0/
-bornequiv  FlavRegList  powheg.input  pwg-btlgrid.top  pwgcounters.dat  pwggrid.dat  pwg-stat.dat  pwgxgrid.dat  SingleLQ_ueLQue_M2000_Lambda1p0.lh
-e  split
+bash-4.2$ ls LeptonInducedLQ_umu_M3000_Lambda1p0/
+FlavRegList			 pwgalone-output.top  pwg-NLO.top		  pwgubound.dat     pwhg_checklimits	sigvirtual_equiv
+LeptonInducedLQ_umu_M3000_Lambda1p0.lhe  pwgcounters.dat      pwg-none-borngrid-stat.dat  pwgxgrid-btl.dat  sigreal_btl0_equiv split
+powheg.input pwghistnorms.top     pwg-stat.dat    pwgxgrid-rm.dat   sigreal_rad_equiv
 
-bash-4.2$ ls SingleLQ_ueLQue_M2000_Lambda1p0/split/
-SingleLQ_ueLQue_M2000_Lambda1p0__10.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__3.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__6.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__9.lhe
-SingleLQ_ueLQue_M2000_Lambda1p0__1.lhe   SingleLQ_ueLQue_M2000_Lambda1p0__4.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__7.lhe  SingleLQ_ueLQue_M2000_Lambda1p0.list
-SingleLQ_ueLQue_M2000_Lambda1p0__2.lhe   SingleLQ_ueLQue_M2000_Lambda1p0__5.lhe  SingleLQ_ueLQue_M2000_Lambda1p0__8.lh
+bash-4.2$ ls LeptonInducedLQ_umu_M3000_Lambda1p0/split/
+LeptonInducedLQ_umu_M3000_Lambda1p0__10.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0__4.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0__8.lhe
+LeptonInducedLQ_umu_M3000_Lambda1p0__1.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0__5.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0__9.lhe
+LeptonInducedLQ_umu_M3000_Lambda1p0__2.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0__6.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0.list
+LeptonInducedLQ_umu_M3000_Lambda1p0__3.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0__7.lhe
 ```
 
 ### Format the LHE files
@@ -201,7 +232,9 @@ Edit HerwigDefaults.rpo file:
 ```
 emacs -nw share/Herwig/HerwigDefaults.rpo
 ```
-Change the line starting with "/build/jenkins/workspace/lcg_release_pipeline" (line 5) with line of the local path
+
+TO BE CHECKED IF NEEDED!!!
+IMPORTANT: Change the line starting with "/build/jenkins/workspace/lcg_release_pipeline" (line 5) with line of the local path
 "/..../HerwigInstallation/lib/Herwig/" (line 8), i.e. both line 5 and line 8 should have the same content.
 
 
@@ -231,28 +264,48 @@ Setup LHAPDF_DATA_PATH (should include "LUXlep-NNPDF31_nlo_as_0118_luxqed"):
 setenv LHAPDF_DATA_PATH /cvmfs/sft.cern.ch/lcg/external/lhapdfsets/current:/cvmfs/sft.cern.ch/lcg/releases/MCGenerators/lhapdf/6.3.0-3c8e0/x86_64-centos7-gcc8-opt/share/LHAPDF
 ```
 
-Setup HERWIGPATH (custom version compiled at the previous step):
+Setup HERWIGPATH (custom version compiled at the previous step, the folder where the file HerwigDefaults.rpo is present):
 ```
-setenv HERWIGPATH /.../HerwigInstallation/share/Herwig
+setenv HERWIGPATH /afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInstallation/share/Herwig
 ```
 
-Create configuration file for GEN step from LHE file. Depending on the year, different global tags and configurations should be used (check the cfg files for 2016, 2016APV, 2017, or 2018). The ID of the LQ depends on the couplings, and needs to be modified in the cfg file.
+Create/edit configuration file for GEN step from LHE file. 
+
+Depending on the year, different global tags and configurations should be used (check the cfg files for 2016, 2016APV, 2017, or 2018).
+The config files templates are in the HerwigInterface folder: 
+```
+config_LQ_Herwig_2016APV_cfg.py  config_LQ_Herwig_2016_cfg.py     config_LQ_Herwig_2017_cfg.py     config_LQ_Herwig_2018_cfg.py
+```
+The ID of the LQ depends on the couplings/charge generated, and needs to be modified in the cfg file.
+Below is the part of the config file that should be modified by adding the LQ id (in this case 9911561). 
+You can check the id in the LHE files produced with POWHEG in previosu step.
+```
+'create /ThePEG/ParticleData S0bar',
+'setup S0bar 9911561 S0bar 400.0 0.0 0.0 0.0 -1 3 1 0',
+'create /ThePEG/ParticleData S0',
+'setup S0 -9911561 S0 400.0 0.0 0.0 0.0 1 -3 1 0',
+'makeanti S0bar S0',
+```
+
+Prepare the area for running, from "CMSSW_10_6_28_LQGen/src" folder:
+
 ```
 git cms-addpkg Configuration/Generator
-cp ../../config_utau_2016_cfg.py .
+cp ../../config_LQ_Herwig_2018_cfg.py .
 cp ../../make_GEN.py .
 scram b
 ```
 
-Suggested to use directly the modified onfig file committed on github (singleLQ_13TeV_Pow_Herwig7_cfg_mod.py).
-Run GEN step:
+Run GEN step for a single sample:
 ```
-cmsRun config_utau_2016_cfg.py files=pwgevents.lhe output=singleLQ_13TeV_Pow_Herwig7_GEN.root maxEvents=1000
+cmsRun config_LQ_Herwig_2018_cfg.py files=/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/LeptonInducedLQ_umu_M3000_Lambda1p0/split/LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1.lhe output=LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1.root maxEvents=100
 ```
-Note: The file "pwgevents.lhe" should be the .lhe text file created in the first step (indicate the full path).
+Note: The .lhe text file should be the one created in the first step, after the editing (indicate the full path).
+
+-------------- Below things should be checked
 
 The outputs are:
-"singleLQ_13TeV_Pow_Herwig7_GEN.root" (GEN file in EDM format, 1000 events: 70 MB , about 1-2 min. on lxplus)
+"LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1.root" (GEN file in EDM format, 1000 events: 70 MB , about 1-2 min. on lxplus)
 "InterfaceMatchboxTest-S123456790.log" (log file of Herwig processing)
 
 This is a script to run the GEN step on several samples, by providing a list of LHE files.

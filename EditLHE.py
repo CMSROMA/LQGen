@@ -6,16 +6,16 @@ import argparse
 #masses=["600","900","1200","1500","1800","2100","2400","2700","3000"]
 #lambdas=["0p2","0p5","1p0","1p5","2p0"]
 
-couplings=["btau"]
-masses=["600","800","1000","1200","1400","1600","2000"]
-lambdas=["0p5","1p0","1p5","2p0","3p0"]
+couplings=["umu"]
+masses=["3000"]
+lambdas=["0p1","1p0"]
 
 for j in range(0,len(masses)):
   for k in range(0,len(lambdas)):
       for l in range(1,11):
-         input_lhe="/afs/cern.ch/work/c/ccaillol/generateLQ_newModel/LQGen/LeptonInducedLQ_"+couplings[0]+"_M"+masses[j]+"_Lambda"+lambdas[k]+"/split/LeptonInducedLQ_"+couplings[0]+"_M"+masses[j]+"_Lambda"+lambdas[k]+"__"+str(l)+".lhe"
-         output_lhe="/afs/cern.ch/work/c/ccaillol/generateLQ_newModel/LQGen/LeptonInducedLQ_"+couplings[0]+"_M"+masses[j]+"_Lambda"+lambdas[k]+"/split/LeptonInducedLQ_mod_"+couplings[0]+"_M"+masses[j]+"_Lambda"+lambdas[k]+"__"+str(l)+".lhe"
-	 print input_lhe,output_lhe
+         input_lhe="/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/LeptonInducedLQ_"+couplings[0]+"_M"+masses[j]+"_Lambda"+lambdas[k]+"/split/LeptonInducedLQ_"+couplings[0]+"_M"+masses[j]+"_Lambda"+lambdas[k]+"__"+str(l)+".lhe"
+         output_lhe="/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/LeptonInducedLQ_"+couplings[0]+"_M"+masses[j]+"_Lambda"+lambdas[k]+"/split/LeptonInducedLQ_mod_"+couplings[0]+"_M"+masses[j]+"_Lambda"+lambdas[k]+"__"+str(l)+".lhe"
+         print (input_lhe,output_lhe)
 
          fin = open(input_lhe, "rt")
          #output file to write the result to
@@ -29,12 +29,12 @@ for j in range(0,len(masses)):
                     fout.write(line.replace('#------------------------------------------------', '#'))
                  elif '<weights>' in line:
                     fout.write(line.replace('<weights>', '<rwgt>'))
-         	    i=0
+                    i=0
                  elif '</weights>' in line:
                     fout.write(line.replace('</weights>', '</rwgt>'))
                     i=-1
                  elif i>=0:
-         	    i=i+1
+                    i=i+1
                     if i==1 : fout.write("<wgt id='101'> " + line.rstrip('\n') + " </wgt> \n")
                     elif i==2 : fout.write("<wgt id='102'> " + line.rstrip('\n') + " </wgt> \n")
                     elif i==3 : fout.write("<wgt id='103'> " + line.rstrip('\n') + " </wgt> \n")

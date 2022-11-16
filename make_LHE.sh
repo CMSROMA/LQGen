@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LQPROCESS=LeptonInducedLQ_utau
+LQPROCESS=LeptonInducedLQ_umu
 #LQPROCESS=SingleLQ_test
 INPUTPOWHEG=testrun/powheg.input-NLO
 #Mass=( 1000 1500 2000 2500 3000 )
@@ -9,12 +9,12 @@ INPUTPOWHEG=testrun/powheg.input-NLO
 #Y=(0p5 1p0 1p5 2p0 3p0)
 #Mass=( 2000 )
 #Y=(1p0)
-Mass=( 600 900 1200 1500 1800 2100 2400 2700 3000 )
-Y=(0p2 0p5 1p0 1p5 2p0)
+Mass=( 3000 )
+Y=( 0p1 1p0 )
 
-OUTPUTDIR=/afs/cern.ch/work/c/ccaillol/generateLQ_newModel/LQGen
-evts=20000
-evtsperfile=2000
+OUTPUTDIR=/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen
+evts=1000
+evtsperfile=100
 
 for m in "${Mass[@]}"
 do 
@@ -30,7 +30,7 @@ do
 		sed -i "s/^mLQ .*/mLQ ${m}/" $LQDIR/powheg.input
 		lambda=$(echo "${i}" | sed "s/p/./" )
 		echo "${lambda}"	
-		sed -i "s/^y_1t.*/y_1t ${lambda}/" $LQDIR/powheg.input
+		sed -i "s/^y_1m.*/y_1m ${lambda}/" $LQDIR/powheg.input
 		cd $LQDIR
 		../pwhg_main 
 		mv pwgevents.lhe ${LQNAME}.lhe

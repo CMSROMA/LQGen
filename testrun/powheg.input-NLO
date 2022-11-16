@@ -6,7 +6,7 @@
 
 !Heavy flavour production parameters
 
-numevts 100000   ! number of events to be generated
+numevts 100   ! number of events to be generated
 ih1   1        ! hadron 1
 ih2   1        ! hadron 2
 #ndns1 131      ! pdf for hadron 1 (hvqpdf numbering)
@@ -46,7 +46,7 @@ bornsmartsig 0
 testplots 1
 
 # LQ parameters
-mLQ 2000   ! Mass of the LQ
+mLQ 3000   ! Mass of the LQ
 
 # the user can provide the width as input; otherwise the program computes the width
 # with the simplest assumption (for example neglecting SU(2) sector) 
@@ -54,8 +54,8 @@ mLQ 2000   ! Mass of the LQ
 
 # if activated, the LQ mass is generated according to a BW within a given mass window
 BWgen 1
-LQmasslow 200
-LQmasshigh 5000
+LQmasslow 100
+LQmasshigh 10000
 
 # used in the template analysis, not in generation
 ptcutlep 0
