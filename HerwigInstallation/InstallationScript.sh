@@ -112,7 +112,9 @@ autoreconf  -vi
 
 # - then usual ./configure && make && install
 #if ! ./configure --prefix=$INSTPATH --with-thepeg=$INSTPATH
-if ! ./configure --prefix=$INSTPATH --with-thepeg=/cvmfs/sft.cern.ch/lcg/releases/LCG_99/MCGenerators/thepeg/2.2.1/x86_64-centos7-gcc8-opt --with-gsl=/cvmfs/sft.cern.ch/lcg/views/LCG_99/x86_64-centos7-gcc8-opt --with-boost=/cvmfs/sft.cern.ch/lcg/releases/LCG_99/Boost/1.73.0/x86_64-centos7-gcc8-opt --with-hepmc=/cvmfs/sft.cern.ch/lcg/releases/LCG_99/HepMC/2.06.11/x86_64-centos7-gcc8-opt --with-evtgen=/cvmfs/sft.cern.ch/lcg/releases/LCG_99/MCGenerators/evtgen/2.0.0/x86_64-centos7-gcc8-opt
+#if ! ./configure --prefix=$INSTPATH --with-thepeg=/cvmfs/sft.cern.ch/lcg/releases/LCG_99/MCGenerators/thepeg/2.2.1/x86_64-centos7-gcc8-opt --with-gsl=/cvmfs/sft.cern.ch/lcg/views/LCG_99/x86_64-centos7-gcc8-opt --with-boost=/cvmfs/sft.cern.ch/lcg/releases/LCG_99/Boost/1.73.0/x86_64-centos7-gcc8-opt --with-hepmc=/cvmfs/sft.cern.ch/lcg/releases/LCG_99/HepMC/2.06.11/x86_64-centos7-gcc8-opt --with-evtgen=/cvmfs/sft.cern.ch/lcg/releases/LCG_99/MCGenerators/evtgen/2.0.0/x86_64-centos7-gcc8-opt
+#for CMSSW_10_6_28 (Paolo)
+if ! ./configure --prefix=$INSTPATH --with-thepeg=/cvmfs/cms.cern.ch/slc7_amd64_gcc820/external/thepeg/2.2.2 --with-gsl=/cvmfs/cms.cern.ch/slc7_amd64_gcc820/external/gsl/2.2.1-pafccj2 --with-boost=/cvmfs/cms.cern.ch/slc7_amd64_gcc820/external/boost/1.67.0-pafccj --with-hepmc=/cvmfs/cms.cern.ch/slc7_amd64_gcc820/external/hepmc/2.06.07-pafccj --with-evtgen=/cvmfs/cms.cern.ch/slc7_amd64_gcc820/external/evtgen/1.6.0-pafccj7
 then
     echo Herwig configuration failed
     exit -1

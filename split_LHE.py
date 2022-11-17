@@ -116,14 +116,53 @@ for line in open(opt.inputfile,'r'):
 print ("Original LHE file splitted in "+str(nfile)+" files")
 
 namelistlhe = opt.outputdir+"/"+lhefilename+".list"
+namelistlhemod = opt.outputdir+"/"+lhefilename+"_mod.list"
 listlhe = open(namelistlhe,"w")
+listlhemod = open(namelistlhemod,"w")
+
 for k in range(1,nfile+1):
     print("cat "+nameFileStart+" "+opt.outputdir+"/"+lhefilename+"__"+str(k)+".lhe"+" "+nameFileEnd+" >> tmp_"+str(k)+".lhe")
     os.system("cat "+nameFileStart+" "+opt.outputdir+"/"+lhefilename+"__"+str(k)+".lhe"+" "+nameFileEnd+" >> tmp_"+str(k)+".lhe")
     print("mv tmp_"+str(k)+".lhe"+" "+opt.outputdir+"/"+lhefilename+"__"+str(k)+".lhe")
     os.system("mv tmp_"+str(k)+".lhe"+" "+opt.outputdir+"/"+lhefilename+"__"+str(k)+".lhe")
     listlhe.write(opt.outputdir+"/"+lhefilename+"__"+str(k)+".lhe"+"\n")
+
+    #Edit LHE file (from Cecile's code)
+    fin = open(opt.outputdir+"/"+lhefilename+"__"+str(k)+".lhe", "rt")
+    #output file to write the result to
+    fout = open(opt.outputdir+"/"+lhefilename+"_mod__"+str(k)+".lhe", "wt")
+    #for each line in the input file
+    i=-1
+
+    for line in fin:
+        #read replace the string and write to output file
+        if '#------------------------------------------------' in line:
+            fout.write(line.replace('#------------------------------------------------', '#'))
+        elif '<weights>' in line:
+            fout.write(line.replace('<weights>', '<rwgt>'))
+            i=0
+        elif '</weights>' in line:
+            fout.write(line.replace('</weights>', '</rwgt>'))
+            i=-1
+        elif i>=0:
+            i=i+1
+            if i==1 : fout.write("<wgt id='101'> " + line.rstrip('\n') + " </wgt> \n")
+            elif i==2 : fout.write("<wgt id='102'> " + line.rstrip('\n') + " </wgt> \n")
+            elif i==3 : fout.write("<wgt id='103'> " + line.rstrip('\n') + " </wgt> \n")
+            elif i==4 : fout.write("<wgt id='104'> " + line.rstrip('\n') + " </wgt> \n")
+            elif i==5 : fout.write("<wgt id='105'> " + line.rstrip('\n') + " </wgt> \n")
+            elif i==6 : fout.write("<wgt id='106'> " + line.rstrip('\n') + " </wgt> \n")
+            elif i==7 : fout.write("<wgt id='107'> " + line.rstrip('\n') + " </wgt> \n")
+            else : fout.write("<wgt id='"+str(i-8)+"'> " + line.rstrip('\n') + " </wgt> \n")
+        else:
+            fout.write(line)
+    #close input and output files
+    fin.close()
+    fout.close()
+    listlhemod.write(opt.outputdir+"/"+lhefilename+"_mod__"+str(k)+".lhe"+"\n")
+
 listlhe.close()
+listlhemod.close()
 
 # clean
 os.system("rm -f "+nameFileStart)

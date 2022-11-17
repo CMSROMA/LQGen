@@ -158,36 +158,29 @@ To run the script
 ./make_LHE.sh
 ```
 
-At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory):
+At the end the LHE file is automatically splitted in several files each with a number of events equal to "evtsperfile" (except the last one that might have a smaller number depending on the integer match). A ".list" file is also created with the list of all the splitted lhe files for a given sample (the list is stored inside the folder of each sample inside the "split" directory).
+
+The LHE files produced above need to be edited 1) to remove the forbidden string "#--" and 2) to have uncertainties stored in a CMS-readable format. This is done automatically in the split_LHE.py script called at the end of make_LHE.sh and a new list with the modified files is also created.
+
 
 ```
-bash-4.2$ ls LeptonInducedLQ_umu_M3000_Lambda1p0/
-FlavRegList			 pwgalone-output.top  pwg-NLO.top		  pwgubound.dat     pwhg_checklimits	sigvirtual_equiv
-LeptonInducedLQ_umu_M3000_Lambda1p0.lhe  pwgcounters.dat      pwg-none-borngrid-stat.dat  pwgxgrid-btl.dat  sigreal_btl0_equiv split
-powheg.input pwghistnorms.top     pwg-stat.dat    pwgxgrid-rm.dat   sigreal_rad_equiv
+[santanas@lxplus774 LQGen]$ ls LeptonInducedLQ_umu_M3000_Lambda1p0/
+FlavRegList	        sigreal_rad_equiv  pwg-none-borngrid-stat.dat  pwgubound.dat     powheg.input			      pwgalone-output.top
+pwhg_checklimits    sigvirtual_equiv   pwg-stat.dat		       			    pwgxgrid-btl.dat  LeptonInducedLQ_umu_M3000_Lambda1p0.lhe  pwghistnorms.top
+sigreal_btl0_equiv  split	              pwgcounters.dat				    		         pwgxgrid-rm.dat   pwg-NLO.top
 
-bash-4.2$ ls LeptonInducedLQ_umu_M3000_Lambda1p0/split/
-LeptonInducedLQ_umu_M3000_Lambda1p0__10.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0__4.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0__8.lhe
-LeptonInducedLQ_umu_M3000_Lambda1p0__1.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0__5.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0__9.lhe
-LeptonInducedLQ_umu_M3000_Lambda1p0__2.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0__6.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0.list
-LeptonInducedLQ_umu_M3000_Lambda1p0__3.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0__7.lhe
-```
-
-### Format the LHE files
-
-The LHE files produced above need to be edited 1) to remove the forbidden string "#--" and 2) to have uncertainties stored in a CMS-readable format. Edit "EditLHE.py" with the location of your files and sets of mass and coupling points, then from any CMSSW area run: 
-```
-python EditLHE.py
+[santanas@lxplus774 LQGen]$ ls LeptonInducedLQ_umu_M3000_Lambda1p0/split/
+LeptonInducedLQ_umu_M3000_Lambda1p0__1.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0__8.lhe       LeptonInducedLQ_umu_M3000_Lambda1p0_mod__6.lhe
+LeptonInducedLQ_umu_M3000_Lambda1p0__10.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0__9.lhe       LeptonInducedLQ_umu_M3000_Lambda1p0_mod__7.lhe
+LeptonInducedLQ_umu_M3000_Lambda1p0__2.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__1.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__8.lhe
+LeptonInducedLQ_umu_M3000_Lambda1p0__3.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__10.lhe  LeptonInducedLQ_umu_M3000_Lambda1p0_mod__9.lhe
+LeptonInducedLQ_umu_M3000_Lambda1p0__4.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__2.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0.list
+LeptonInducedLQ_umu_M3000_Lambda1p0__5.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__3.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0_mod.list
+LeptonInducedLQ_umu_M3000_Lambda1p0__6.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__4.lhe
+LeptonInducedLQ_umu_M3000_Lambda1p0__7.lhe   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__5.lhe
 ```
 
 ## Compile Herwig package for showering of LHE events
-
-
-Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
-```
-bash
-source setup.sh
-```
 
 ---
 
@@ -218,24 +211,27 @@ It should work also in the ~/.local directory (instead of /afs/cern.ch/work/s/sa
 
 ---
 
+Start from a new terminal.
+
+Setup environment and LHAPDF_DATA_PATH from cvmfs (https://cernvm.cern.ch/fs/):
 ```
+bash
 cd HerwigInstallation
+source /cvmfs/cms.cern.ch/cmsset_default.sh
+scram project -n CMSSW_10_6_28_LQGen CMSSW CMSSW_10_6_28
+cd CMSSW_10_6_28_LQGen/src
+cmsenv
+cd ../../
+source ../setup_LHAPDF.sh
 ```
 
 Install:
 ```
 ./InstallationScript.sh
 ```
-(it takes about 30 minutes)
+(it takes about 45 minutes)
 
-Edit HerwigDefaults.rpo file:
-```
-emacs -nw share/Herwig/HerwigDefaults.rpo
-```
-
-TO BE CHECKED IF NEEDED!!!
-IMPORTANT: Change the line starting with "/build/jenkins/workspace/lcg_release_pipeline" (line 5) with line of the local path
-"/..../HerwigInstallation/lib/Herwig/" (line 8), i.e. both line 5 and line 8 should have the same content.
+The file "share/Herwig/HerwigDefaults.rpo" is created.
 
 
 ## Run Herwig showering in CMSSW
@@ -298,27 +294,27 @@ scram b
 
 Run GEN step for a single sample:
 ```
-cmsRun config_LQ_Herwig_2018_cfg.py files=/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/LeptonInducedLQ_umu_M3000_Lambda1p0/split/LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1.lhe output=LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1.root maxEvents=100
+cmsRun config_LQ_Herwig_2018_cfg.py files=/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/LeptonInducedLQ_umu_M3000_Lambda1p0/split/LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1.lhe output=LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1.root maxEvents=10
 ```
 Note: The .lhe text file should be the one created in the first step, after the editing (indicate the full path).
 
--------------- Below things should be checked
-
-The outputs are:
-"LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1.root" (GEN file in EDM format, 1000 events: 70 MB , about 1-2 min. on lxplus)
-"InterfaceMatchboxTest-S123456790.log" (log file of Herwig processing)
+The main outputs are:
+"LeptonInducedLQ_mod_umu_M3000_Lambda1p0__1_numEvent10.root" (GEN file in EDM format, 10 events: ~1 MB , <1 min. on lxplus)
+"InterfaceMatchboxTest-S123456790.out" (cross section output)
+"InterfaceMatchboxTest-S123456790.log" (log file of Herwig/ThePEG processing)
 
 This is a script to run the GEN step on several samples, by providing a list of LHE files.
 ```
-python make_GEN.py -i $CURRENTWORKDIR/SingleLQ_ueLQue_M2000_Lambda1p0/split/SingleLQ_ueLQue_M2000_Lambda1p0.list -o /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/HerwigInterface/CMSSW_10_6_28_LQGen/src/SingleLQ_ueLQue_M2000_Lambda1p0__GEN -s config_utau_2016_cfg.py -n 10
+python make_GEN.py -i /afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/LeptonInducedLQ_umu_M3000_Lambda1p0/split/LeptonInducedLQ_umu_M3000_Lambda1p0_mod.list -o /afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInterface/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN -s config_LQ_Herwig_2018_cfg.py -n 100
 ```
 
 At the end, a ".list" file is created in the output directory with the list of all the GEN files. Ex. :
 ```
-[santanas@lxplus789 src]$ ls /afs/cern.ch/work/s/santanas/Workspace/CMS/LQGen/HerwigInterface/CMSSW_10_6_28_LQGen/src/SingleLQ_ueLQue_M2000_Lambda1p0__GEN
-SingleLQ_ueLQue_M2000_Lambda1p0__GEN.list  SingleLQ_ueLQue_M2000_Lambda1p0__2.root  SingleLQ_ueLQue_M2000_Lambda1p0__5.root  SingleLQ_ueLQue_M2000_Lambda1p0__8.root
-SingleLQ_ueLQue_M2000_Lambda1p0__1.root    SingleLQ_ueLQue_M2000_Lambda1p0__3.root  SingleLQ_ueLQue_M2000_Lambda1p0__6.root  SingleLQ_ueLQue_M2000_Lambda1p0__9.root
-SingleLQ_ueLQue_M2000_Lambda1p0__10.root   SingleLQ_ueLQue_M2000_Lambda1p0__4.root  SingleLQ_ueLQue_M2000_Lambda1p0__7.root
+[santanas@lxplus774 LeptonInducedLQ_umu_M3000_Lambda1p0__GEN]$ ls /afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInterface/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN
+LeptonInducedLQ_umu_M3000_Lambda1p0__GEN.list		         LeptonInducedLQ_umu_M3000_Lambda1p0_mod__3.root  LeptonInducedLQ_umu_M3000_Lambda1p0_mod__7.root
+LeptonInducedLQ_umu_M3000_Lambda1p0_mod__1.root   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__4.root  LeptonInducedLQ_umu_M3000_Lambda1p0_mod__8.root
+LeptonInducedLQ_umu_M3000_Lambda1p0_mod__10.root  LeptonInducedLQ_umu_M3000_Lambda1p0_mod__5.root  LeptonInducedLQ_umu_M3000_Lambda1p0_mod__9.root
+LeptonInducedLQ_umu_M3000_Lambda1p0_mod__2.root   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__6.root
 ```
 
 # Generator level analysis on LQ events with CMSSW
@@ -339,16 +335,48 @@ cd CMSROMA/GenAna/
 scram b
 ```
 
-Edit config file "python/GenAnalq_cfg.py" as needed (i.e. input file).
+Edit config file "python/GenAnalq_cfg.py" as needed (i.e. input file):
 
 Run analysis:
 ```
 cmsRun python/GenAnalq_cfg.py
 ```
 
+or pass info from command line (as shown below):
+
+```
+cmsRun python/GenAnalq_cfg.py files="file:/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInterface/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN/LeptonInducedLQ_umu_M3000_Lambda1p0_mod__1.root" output="LeptonInducedLQ_umu_M3000_Lambda1p0_mod__1_ANALYSIS.root"
+```
+
 Outputs:
 ```
-GenAnalq.root (containing both histograms and tree)
+LeptonInducedLQ_umu_M3000_Lambda1p0_mod__1_ANALYSIS.root (containing both histograms and tree)
+```
+
+You can also run over several GEN files:
+
+Create a list of GEN files (i.e. starting from /afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInterface/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN.list created in the prevbious step)
+```
+file:/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInterface/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN/LeptonInducedLQ_umu_M3000_Lambda1p0_mod__1.root
+file:/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInterface/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN/LeptonInducedLQ_umu_M3000_Lambda1p0_mod__2.root
+file:/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInterface/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN/LeptonInducedLQ_umu_M3000_Lambda1p0_mod__3.root
+file:/afs/cern.ch/work/s/santanas/Workspace/CMS/generateLQ_NLO/LQGen/HerwigInterface/LeptonInducedLQ_umu_M3000_Lambda1p0__GEN/LeptonInducedLQ_umu_M3000_Lambda1p0_mod__4.root
+...
+```
+(NOTE add "file:" for files on afs. Add "root://eoscms//" for files on eos)
+
+Run analysis on all samples:
+```
+python makeANAfromGEN.py -c python/GenAnalq_cfg.py -i LeptonInducedLQ_umu_M3000_Lambda1p0__GEN.list -t /tmp/santanas/ --outputDir `pwd`/TestOutput
+```
+
+The output is:
+```
+[santanas@lxplus774 GenAna]$ ls TestOutput/
+LeptonInducedLQ_umu_M3000_Lambda1p0_mod__10_ANALYSIS.root  LeptonInducedLQ_umu_M3000_Lambda1p0_mod__4_ANALYSIS.root  LeptonInducedLQ_umu_M3000_Lambda1p0_mod__8_ANALYSIS.root
+LeptonInducedLQ_umu_M3000_Lambda1p0_mod__1_ANALYSIS.root   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__5_ANALYSIS.root  LeptonInducedLQ_umu_M3000_Lambda1p0_mod__9_ANALYSIS.root
+LeptonInducedLQ_umu_M3000_Lambda1p0_mod__2_ANALYSIS.root   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__6_ANALYSIS.root
+LeptonInducedLQ_umu_M3000_Lambda1p0_mod__3_ANALYSIS.root   LeptonInducedLQ_umu_M3000_Lambda1p0_mod__7_ANALYSIS.root
 ```
 
 For more details go in the package area: git@github.com:CMSROMA/GenAna.git
